@@ -659,9 +659,13 @@ def api_system_status():
 
 @app.errorhandler(404)
 def handle_404(e):
-    if request.path.startswith("/api/") and not request.path.startswith("/api/index"):
-        return jsonify({"success": False, "error": "Endpoint or resource not found"}), 404
-    return render_template("dashboard.html", active_page="dashboard", stats=get_dashboard_stats(), recent_events=[]), 404
+    return jsonify({
+        "success": False,
+        "error": "Endpoint or resource not found",
+        "received_path": request.path,
+        "environ_path_info": request.environ.get("PATH_INFO"),
+        "matched_path_header": request.headers.get("x-matched-path"),
+    }), 404
 
 
 @app.errorhandler(500)
