@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 from urllib.parse import parse_qs
@@ -18,6 +19,20 @@ class VercelPathMiddleware:
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
+        # Diagnostic interceptor for /debug
+        raw_env_keys = " ".join([str(v) for k, v in environ.items() if isinstance(v, str)])
+        if "debug" in raw_env_keys:
+            data = {k: str(v) for k, v in environ.items() if isinstance(v, (str, int, bool))}
+            body = json.dumps(data, indent=2).encode("utf-8")
+            start_response(
+                "200 OK",
+                [
+                    ("Content-Type", "application/json"),
+                    ("Content-Length", str(len(body))),
+                ],
+            )
+            return [body]
+
         # 1. Primary: Check explicit __route__ query param from vercel.json rewrite
         query_string = environ.get("QUERY_STRING", "")
         if query_string:
