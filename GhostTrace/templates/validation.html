@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Center &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Validation Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Automated Forensic Validation Center
+        </h1>
+        <p class="page-subtitle">
+            Runs automated schema validation, hash completeness, chronological ordering, and duplicate checks across all project outputs.
+        </p>
+    </div>
+    <div class="header-actions">
+        <button type="button" class="btn btn-primary" id="btn-run-validation">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="val-btn-text">Execute Live Audit</span>
+        </button>
+    </div>
+</div>
+
+<!-- Validation Metric Counters -->
+<div class="val-summary-bar">
+    <div class="val-stat-box pass">
+        <span class="val-stat-num text-green" id="count-pass">{{ validation_data.summary.passed }}</span>
+        <span class="val-stat-label">Checks Passed</span>
+    </div>
+    <div class="val-stat-box fail">
+        <span class="val-stat-num" style="color: var(--status-fail);" id="count-fail">{{ validation_data.summary.failed }}</span>
+        <span class="val-stat-label">Checks Failed</span>
+    </div>
+    <div class="val-stat-box warn">
+        <span class="val-stat-num" style="color: var(--status-warn);" id="count-warn">{{ validation_data.summary.warned }}</span>
+        <span class="val-stat-label">Warnings</span>
+    </div>
+    <div class="val-stat-box skip">
+        <span class="val-stat-num text-muted" id="count-skip">{{ validation_data.summary.skipped }}</span>
+        <span class="val-stat-label">Skipped</span>
+    </div>
+    <div class="val-stat-box">
+        <span class="val-stat-num" id="count-total">{{ validation_data.summary.total }}</span>
+        <span class="val-stat-label">Total Checks Run</span>
+    </div>
+</div>
+
+<!-- Results Feed -->
+<div class="cyber-card">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="card-title-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </span>
+            Validation Audit Checks
+        </span>
+        <div style="display: flex; gap: 6px;">
+            <button class="btn btn-sm btn-secondary active" data-filter-group="valstatus" data-filter-value="all">All</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="valstatus" data-filter-value="pass">Pass</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="valstatus" data-filter-value="fail">Fail</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="valstatus" data-filter-value="warn">Warn</button>
+        </div>
+    </div>
+
+    <div id="validation-feed">
+        {% for res in validation_data.results %}
+        <div class="searchable-item" data-filter-valstatus="{{ res.status | lower }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge badge-{{ res.status | lower }}">{{ res.status }}</span>
+                <span style="font-weight: 500; font-size: 13px;">{{ res.check }}</span>
+            </div>
+            <div class="font-mono text-muted" style="font-size: 11px;">
+                {{ res.detail }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('btn-run-validation').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-run-validation');
+    const btnText = document.getElementById('val-btn-text');
+    const feed = document.getElementById('validation-feed');
+
+    btn.disabled = true;
+    btnText.textContent = 'Running Audit Checks...';
+
+    try {
+        const resp = await fetch('{{ url_for("api_validation_run") }}', {
+            method: 'POST'
+        });
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+            // Update counts
+            document.getElementById('count-pass').textContent = data.summary.passed;
+            document.getElementById('count-fail').textContent = data.summary.failed;
+            document.getElementById('count-warn').textContent = data.summary.warned;
+            document.getElementById('count-skip').textContent = data.summary.skipped;
+            document.getElementById('count-total').textContent = data.summary.total;
+
+            // Render feed
+            feed.innerHTML = '';
+            data.results.forEach(res => {
+                const item = document.createElement('div');
+                item.className = 'searchable-item';
+                item.setAttribute('data-filter-valstatus', res.status.toLowerCase());
+                item.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color);';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="badge badge-${res.status.toLowerCase()}">${res.status}</span>
+                        <span style="font-weight: 500; font-size: 13px;">${res.check}</span>
+                    </div>
+                    <div class="font-mono text-muted" style="font-size: 11px;">
+                        ${res.detail || ''}
+                    </div>
+                `;
+                feed.appendChild(item);
+            });
+
+            if (data.summary.failed === 0) {
+                showToast('success', 'Audit Complete', `All ${data.summary.passed} validation checks passed!`);
+            } else {
+                showToast('error', 'Audit Detected Errors', `${data.summary.failed} check(s) failed.`);
+            }
+        } else {
+            showToast('error', 'Audit Failed', data.error || 'Execution encountered an error.');
+        }
+    } catch (err) {
+        showToast('error', 'Network Error', 'Failed to communicate with validation runner.');
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Execute Live Audit';
+    }
+});
+</script>
+{% endblock %}

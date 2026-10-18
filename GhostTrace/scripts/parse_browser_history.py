@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 parse_browser_history.py — GhostTrace Digital Forensics Investigation
 ======================================================================
 Extracts browsing history from a Chromium-based browser's SQLite History

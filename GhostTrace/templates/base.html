@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GhostTrace{% endblock %} &mdash; Digital Forensics &amp; Incident Reconstruction</title>
+    <meta name="description" content="GhostTrace Digital Forensics Investigation and Incident Reconstruction Platform. Local analytical workbench for forensic artifact triage, integrity hashing, timeline normalization, and evidence auditing.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="theme-cyber">
+    <!-- Interactive Binary Canvas Background -->
+    <canvas id="binary-canvas" aria-hidden="true"></canvas>
+
+    <!-- App Container -->
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="brand-link">
+                    <div class="brand-logo">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="brand-info">
+                        <span class="brand-name">GhostTrace</span>
+                        <span class="brand-tag">FORENSICS WORKBENCH</span>
+                    </div>
+                </a>
+                <button class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle navigation drawer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-project-badge">
+                <div class="pulse-indicator"></div>
+                <div class="badge-text">
+                    <span class="badge-title">LAB: AUTOPSY 4.21</span>
+                    <span class="badge-sub">CFAL IA-2 &bull; SEM V</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">INVESTIGATION</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{{ url_for('dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Overview</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('evidence') }}" class="nav-link {% if active_page == 'evidence' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Evidence Inventory</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('hash_verification') }}" class="nav-link {% if active_page == 'hash_verification' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="4" y1="9" x2="20" y2="9"></line>
+                                    <line x1="4" y1="15" x2="20" y2="15"></line>
+                                    <line x1="10" y1="3" x2="8" y2="21"></line>
+                                    <line x1="16" y1="3" x2="14" y2="21"></line>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Hash Verification</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('timeline') }}" class="nav-link {% if active_page == 'timeline' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Timeline Analysis</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('browser_forensics') }}" class="nav-link {% if active_page == 'browser_forensics' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Browser Forensics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('findings') }}" class="nav-link {% if active_page == 'findings' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Findings Register</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="nav-section-label">AUDIT &amp; REPORTING</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{{ url_for('validation') }}" class="nav-link {% if active_page == 'validation' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Validation Center</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('reports') }}" class="nav-link {% if active_page == 'reports' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Academic Report</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('settings_page') }}" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+                            <span class="nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </span>
+                            <span class="nav-text">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="team-meta">
+                    <span class="meta-label">INVESTIGATORS</span>
+                    <span class="meta-names">H. Rawat &bull; K. Choubey &bull; J. Jain</span>
+                </div>
+                <div class="security-seal">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>AIR-GAPPED LOCAL WORKBENCH</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="app-main">
+            <!-- Topbar Header -->
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <div class="breadcrumb">
+                        <span class="breadcrumb-root">GhostTrace</span>
+                        <span class="breadcrumb-separator">/</span>
+                        <span class="breadcrumb-current">{% block breadcrumb %}Overview{% endblock %}</span>
+                    </div>
+                </div>
+
+                <div class="topbar-center">
+                    <div class="global-search-container">
+                        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="global-search" class="search-input" placeholder="Filter current records, IDs, or timestamps..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="status-pill status-verified" title="Forensic chain of custody maintained locally">
+                        <span class="status-dot"></span>
+                        <span class="status-label">CHAIN OF CUSTODY: ACTIVE</span>
+                    </div>
+                    <div class="env-pill">
+                        <span class="env-host">127.0.0.1:5000</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Alerts Container -->
+            <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+            <!-- Page Content -->
+            <main class="page-content">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <div class="footer-left">
+                    <span>GhostTrace v1.2 &mdash; K. J. Somaiya College of Engineering</span>
+                </div>
+                <div class="footer-right">
+                    <span>Department of Computer Engineering &bull; Cyber Forensics &amp; Laws</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/binary-background.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

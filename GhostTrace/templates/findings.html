@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Findings Register &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Findings Register{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Forensic Findings Register &amp; Evidence Matrix
+        </h1>
+        <p class="page-subtitle">
+            Maintains strict separation between observed facts, analytical interpretations, alternative hypotheses, and technical limitations.
+        </p>
+    </div>
+    <div class="header-actions">
+        <div style="display: flex; gap: 6px;">
+            <button class="btn btn-sm btn-secondary active" data-filter-group="conf" data-filter-value="all">All ({{ findings | length }})</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="conf" data-filter-value="high">High Confidence ({{ high_count }})</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="conf" data-filter-value="medium">Medium Confidence ({{ med_count }})</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scientific Investigation Principle Alert -->
+<div class="cyber-card mb-4" style="background: rgba(0, 184, 107, 0.04); border-color: rgba(0, 184, 107, 0.2);">
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <div style="color: var(--accent-muted); flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+            <strong class="text-primary">Observation vs. Inference Principle:</strong>
+            Observations represent verifiable data extracted directly from forensic disk artifacts. Interpretations represent investigative deductions. Alternative explanations must be evaluated to satisfy evidentiary standards for legal proceedings.
+        </div>
+    </div>
+</div>
+
+<!-- Findings List / Accordion -->
+<div>
+    {% for f in findings %}
+    <div class="finding-item searchable-item" data-filter-conf="{{ f.confidence | lower }}">
+        <div class="finding-header">
+            <div class="finding-header-left">
+                <span class="finding-id">{{ f.finding_id }}</span>
+                <span class="badge badge-{{ f.confidence | lower }}">{{ f.confidence }}</span>
+                <span class="finding-title">{{ f.observation[:95] }}{% if f.observation | length > 95 %}...{% endif %}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="text-muted font-mono" style="font-size: 11px;">{{ f.timestamp_utc }}</span>
+                <svg class="finding-toggle-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); transition: transform 0.2s ease;">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <div class="finding-body" style="display: none;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="finding-field">
+                    <span class="finding-field-label">ARTIFACT SOURCE</span>
+                    <span class="finding-field-val font-mono text-green">{{ f.artifact_source }}</span>
+                </div>
+                <div class="finding-field">
+                    <span class="finding-field-label">ARTIFACT PATH / RECORD</span>
+                    <span class="finding-field-val font-mono text-muted" style="word-break: break-all;">{{ f.artifact_path }}</span>
+                </div>
+            </div>
+
+            <div class="finding-field">
+                <span class="finding-field-label">DIRECT FORENSIC OBSERVATION (FACT)</span>
+                <span class="finding-field-val" style="color: var(--text-primary);">{{ f.observation }}</span>
+            </div>
+
+            <div class="finding-field">
+                <span class="finding-field-label">INVESTIGATOR INTERPRETATION (INFERENCE)</span>
+                <span class="finding-field-val" style="color: var(--text-secondary); background: rgba(0, 255, 136, 0.03); border-left: 2px solid var(--accent-green); padding: 8px 12px;">
+                    {{ f.interpretation }}
+                </span>
+            </div>
+
+            {% if f.alternative_explanation %}
+            <div class="finding-field">
+                <span class="finding-field-label">PLAUSIBLE ALTERNATIVE EXPLANATION</span>
+                <span class="finding-field-val text-muted" style="background: rgba(255, 179, 0, 0.03); border-left: 2px solid var(--status-warn); padding: 8px 12px;">
+                    {{ f.alternative_explanation }}
+                </span>
+            </div>
+            {% endif %}
+
+            {% if f.limitations %}
+            <div class="finding-field">
+                <span class="finding-field-label">EVIDENTIARY LIMITATIONS &amp; UNCERTAINTIES</span>
+                <span class="finding-field-val font-mono" style="font-size: 11px; color: var(--text-muted);">
+                    {{ f.limitations }}
+                </span>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 4px; font-size: 11px;">
+                <span class="text-muted">Examination Method: {{ f.examination_method }}</span>
+                <span class="badge badge-neutral">AUDITED</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline Analysis &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Timeline Analysis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Incident Timeline &amp; Sequence Reconstruction
+        </h1>
+        <p class="page-subtitle">
+            Correlated chronological event sequence combining Windows Security Event Logs, NTFS MFT metadata, Chrome history, and Recycle Bin artifacts.
+        </p>
+    </div>
+    <div class="header-actions">
+        <!-- Re-Normalize Action Form -->
+        <form method="POST" action="{{ url_for('api_timeline_normalize') }}" style="display: flex; gap: 8px; align-items: center;">
+            <select name="timezone" class="form-control" style="width: 100px; height: 34px;">
+                <option value="IST" selected>IST (+5:30)</option>
+                <option value="UTC">UTC (+0:00)</option>
+                <option value="EST">EST (-5:00)</option>
+                <option value="PST">PST (-8:00)</option>
+                <option value="CET">CET (+1:00)</option>
+            </select>
+            <button type="submit" class="btn btn-outline-green" id="btn-norm-timeline">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Normalize Timeline</span>
+            </button>
+        </form>
+        <a href="{{ url_for('api_timeline_export') }}" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export CSV</span>
+        </a>
+    </div>
+</div>
+
+<!-- View Switcher & Filters -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+    <!-- Switch between Table and Visual Timeline -->
+    <div style="display: flex; gap: 4px; background: rgba(10, 16, 13, 0.8); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 2px;">
+        <button type="button" class="btn btn-sm btn-secondary active" id="btn-view-visual" onclick="switchView('visual')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="20" x2="12" y2="10"></line>
+                <line x1="18" y1="20" x2="18" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="16"></line>
+            </svg>
+            <span>Visual Graph</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" id="btn-view-table" onclick="switchView('table')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span>Chronological Table</span>
+        </button>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div style="display: flex; gap: 6px; align-items: center;">
+        <span class="text-muted" style="font-size: 11px; margin-right: 4px;">CONFIDENCE:</span>
+        <button class="btn btn-sm btn-secondary active" data-filter-group="conf" data-filter-value="all">All</button>
+        <button class="btn btn-sm btn-secondary" data-filter-group="conf" data-filter-value="high">High ({{ high_count }})</button>
+        <button class="btn btn-sm btn-secondary" data-filter-group="conf" data-filter-value="medium">Medium ({{ med_count }})</button>
+    </div>
+</div>
+
+<!-- 1. Visual Graphical Timeline View -->
+<div id="view-visual-container" class="cyber-card">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="card-title-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </span>
+            Incident Sequence Visualization ({{ timeline_events | length }} Events)
+        </span>
+        <span class="badge badge-pass">UTC CORRELATED</span>
+    </div>
+
+    {% if timeline_events %}
+    <div class="timeline-vertical">
+        {% for event in timeline_events %}
+        <div class="timeline-event-card searchable-item" data-filter-conf="{{ event.confidence | lower }}">
+            <div class="timeline-marker"></div>
+            <div class="event-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="event-timestamp">{{ event.timestamp_utc }}</span>
+                    {% if event.timestamp_local %}
+                    <span class="text-muted font-mono" style="font-size: 11px;">({{ event.timestamp_local }} {{ event.timezone }})</span>
+                    {% endif %}
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    {% if event.finding_id %}
+                    <span class="badge badge-neutral">{{ event.finding_id }}</span>
+                    {% endif %}
+                    <span class="badge badge-{{ event.confidence | lower }}">{{ event.confidence }}</span>
+                </div>
+            </div>
+
+            <div class="event-desc">{{ event.event_description }}</div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px;">
+                <span class="event-source">{{ event.artifact_source }}</span>
+                {% if event.artifact_path %}
+                <span class="text-muted font-mono" style="font-size: 10px; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ event.artifact_path }}</span>
+                {% endif %}
+            </div>
+
+            {% if event.interpretation %}
+            <div class="event-interpretation">
+                <strong style="color: var(--text-primary); font-size: 11px;">Investigator Interpretation:</strong> 
+                {{ event.interpretation }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted" style="padding: 40px; text-align: center;">No events in timeline.</p>
+    {% endif %}
+</div>
+
+<!-- 2. Chronological Table View -->
+<div id="view-table-container" class="cyber-card" style="display: none;">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="card-title-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </span>
+            Normalized Timeline Master Table
+        </span>
+        <span class="badge badge-neutral">{{ timeline_events | length }} ROWS</span>
+    </div>
+
+    {% if timeline_events %}
+    <div class="table-responsive">
+        <table class="cyber-table" data-searchable="true">
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>Local Time</th>
+                    <th>Artifact Source</th>
+                    <th>Event Description</th>
+                    <th>Finding</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in timeline_events %}
+                <tr data-filter-conf="{{ event.confidence | lower }}">
+                    <td class="font-mono text-green nowrap" style="font-weight: 600;">{{ event.timestamp_utc }}</td>
+                    <td class="font-mono text-muted nowrap" style="font-size: 11px;">{{ event.timestamp_local }} ({{ event.timezone }})</td>
+                    <td><span class="badge badge-neutral">{{ event.artifact_source }}</span></td>
+                    <td style="max-width: 380px;">
+                        <div>{{ event.event_description }}</div>
+                        {% if event.interpretation %}
+                        <div class="text-muted" style="font-size: 11px; margin-top: 3px;">{{ event.interpretation }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="font-mono text-green">{{ event.finding_id }}</td>
+                    <td><span class="badge badge-{{ event.confidence | lower }}">{{ event.confidence }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted" style="padding: 40px; text-align: center;">No events found in timeline CSV.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function switchView(view) {
+    const visual = document.getElementById('view-visual-container');
+    const table = document.getElementById('view-table-container');
+    const btnVisual = document.getElementById('btn-view-visual');
+    const btnTable = document.getElementById('btn-view-table');
+
+    if (view === 'visual') {
+        visual.style.display = 'block';
+        table.style.display = 'none';
+        btnVisual.classList.add('active');
+        btnTable.classList.remove('active');
+    } else {
+        visual.style.display = 'none';
+        table.style.display = 'block';
+        btnVisual.classList.remove('active');
+        btnTable.classList.add('active');
+    }
+}
+</script>
+{% endblock %}

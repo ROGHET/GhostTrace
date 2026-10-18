@@ -1,0 +1,22 @@
+{
+  "tool": "GhostTrace hash_evidence.py",
+  "generated_utc": "2026-10-18T18:34:04.950468+00:00",
+  "algorithm": "sha256",
+  "total_files": 2,
+  "entries": [
+    {
+      "relative_path": "evidence\\evidence_inventory.csv",
+      "absolute_path": "C:\\Imp Stuff\\CFAL MINI PROJECT - TRY HACK ME\\GhostTrace\\evidence\\evidence_inventory.csv",
+      "sha256": "7126d2fb855e1f100e4a77db80d099f5cfd2d3b0f32c3ca77f5e6ac7658e523f",
+      "size_bytes": 2063,
+      "mtime_utc": "2026-10-18T17:23:30.611867+00:00"
+    },
+    {
+      "relative_path": "evidence\\hash_manifest.txt",
+      "absolute_path": "C:\\Imp Stuff\\CFAL MINI PROJECT - TRY HACK ME\\GhostTrace\\evidence\\hash_manifest.txt",
+      "sha256": "f79c900e8ef91d55a9c7f1bc99055602cbf291433e46f5ca4234323859b741ca",
+      "size_bytes": 2142,
+      "mtime_utc": "2026-10-18T17:23:49.951702+00:00"
+    }
+  ]
+}

@@ -1,15 +1,6 @@
-# hashbench - evidence hashing
-hashlib
-pathlib
-
-# CSV/Timeline processing
-csv
-
-# Standard library only for core scripts — no external deps needed
-# The following are for optional extended analysis:
-
-# Evidence parsing utilities
-python-magic==0.4.27
+# GhostTrace — Cyber Forensics & Incident Reconstruction
+# Core Web GUI Framework
+Flask>=3.0.0
 
 # Autopsy report parsing (XML/HTML)
 beautifulsoup4==4.12.3

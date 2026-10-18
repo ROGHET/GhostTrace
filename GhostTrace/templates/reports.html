@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Forensics Report &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Forensic Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Academic Forensics Report Viewer
+        </h1>
+        <p class="page-subtitle">
+            Formal technical report formatted in accordance with the official K. J. Somaiya College of Engineering CFAL IA-2 project template.
+        </p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('view_raw_report') }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-green">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span>Open Report in New Tab</span>
+        </a>
+    </div>
+</div>
+
+<!-- Report Metadata Bar -->
+<div class="cyber-card mb-4" style="padding: 14px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; font-size: 12px;">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div>
+                <span class="text-muted">DOCUMENT:</span>
+                <span class="text-primary font-mono" style="margin-left: 6px;">GhostTrace_Digital_Forensics_Report.html</span>
+            </div>
+            <div>
+                <span class="text-muted">FILE SIZE:</span>
+                <span class="text-mono text-green" style="margin-left: 6px;">{{ report_size }}</span>
+            </div>
+            <div>
+                <span class="text-muted">TEMPLATE:</span>
+                <span class="badge badge-pass" style="margin-left: 6px;">SOMAIYA RED-SIDEBAR FORMAT</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <span class="badge badge-neutral">10 SECTIONS</span>
+            <span class="badge badge-neutral">ACADEMIC VIVA READY</span>
+        </div>
+    </div>
+</div>
+
+<!-- Report Embedded Preview Frame -->
+<div class="report-frame-container">
+    <iframe src="{{ url_for('view_raw_report') }}" class="report-frame" title="GhostTrace Digital Forensics Investigation Report"></iframe>
+</div>
+{% endblock %}

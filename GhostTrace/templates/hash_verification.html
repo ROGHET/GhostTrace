@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Hash Verification &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Hash Verification{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="4" y1="9" x2="20" y2="9"></line>
+                <line x1="4" y1="15" x2="20" y2="15"></line>
+                <line x1="10" y1="3" x2="8" y2="21"></line>
+                <line x1="16" y1="3" x2="14" y2="21"></line>
+            </svg>
+            Cryptographic Integrity &amp; Hash Verification
+        </h1>
+        <p class="page-subtitle">
+            Computes FIPS 180-4 SHA-256 cryptographic digests in 64 KiB chunks to verify digital evidence integrity without memory exhaustion.
+        </p>
+    </div>
+    <div class="header-actions">
+        <form method="POST" action="{{ url_for('api_hash_export_manifest') }}" style="display: inline;">
+            <button type="submit" class="btn btn-outline-green">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span>Re-Generate Manifest JSON/TXT</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- Left Column: Hash Calculator Form -->
+    <div class="cyber-card">
+        <div class="card-header">
+            <span class="card-title">
+                <span class="card-title-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </span>
+                SHA-256 Digest Calculator
+            </span>
+            <span class="badge badge-neutral">CHUNKED 64 KiB</span>
+        </div>
+
+        <form id="hash-calc-form" method="POST" action="{{ url_for('api_hash_calculate') }}" enctype="multipart/form-data">
+            <!-- Mode 1: Select registered evidence file -->
+            <div class="form-group">
+                <label class="form-label" for="selected_file">Select Project Evidence File</label>
+                <select name="selected_file" id="selected_file" class="form-control">
+                    <option value="">&mdash; Choose from evidence catalog &mdash;</option>
+                    {% for item in registered_files %}
+                    <option value="{{ item.path }}" {% if preselected_file == item.path %}selected{% endif %}>
+                        {{ item.name }} ({{ item.size_human }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Mode 2: Or upload custom file -->
+            <div class="form-group">
+                <label class="form-label" for="custom_file">Or Select Local File From Disk</label>
+                <input type="file" name="custom_file" id="custom_file" class="form-control" style="padding-top: 5px;">
+            </div>
+
+            <!-- Optional: Reference Hash for verification comparison -->
+            <div class="form-group">
+                <label class="form-label" for="reference_hash">Reference / Known Hash (Optional)</label>
+                <input type="text" name="reference_hash" id="reference_hash" class="form-control font-mono" placeholder="Paste 64-character SHA-256 to compare (e.g. from lab note)">
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" id="btn-hash-run" style="width: 100%;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                    <span>Compute SHA-256 Digest</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Dynamic Hash Calculation Output -->
+        <div id="hash-live-result" style="display: none; margin-top: 20px;"></div>
+    </div>
+
+    <!-- Right Column: Current Hash Manifest Records -->
+    <div class="cyber-card">
+        <div class="card-header">
+            <span class="card-title">
+                <span class="card-title-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                </span>
+                Recorded Manifest Entries ({{ manifest_entries | length }})
+            </span>
+            <span class="badge badge-pass">MANIFEST LOADED</span>
+        </div>
+
+        {% if manifest_entries %}
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 4px;">
+            {% for entry in manifest_entries %}
+            <div style="background: rgba(10, 16, 13, 0.7); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-weight: 600; font-size: 13px;">{{ entry.relative_path }}</span>
+                    <span class="text-muted font-mono" style="font-size: 11px;">{{ entry.size_human }}</span>
+                </div>
+                <div class="hash-string-container" style="margin-top: 4px;">
+                    <span class="hash-string" style="font-size: 11px;" id="manifest-hash-{{ loop.index }}">{{ entry.sha256 }}</span>
+                    <button type="button" class="btn btn-sm btn-outline-green" data-copy-target="manifest-hash-{{ loop.index }}" title="Copy Hash">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--text-muted);">
+                    <span>UTC: {{ entry.mtime_utc }}</span>
+                    <button type="button" class="btn btn-sm btn-secondary" style="height: 22px; padding: 0 6px; font-size: 10px;" onclick="compareWithManifest('{{ entry.sha256 }}', '{{ entry.relative_path }}')">
+                        Use as Reference
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="padding: 30px; text-align: center;" class="text-muted">
+            <p>No manifest records found in <code class="text-mono">evidence/hash_manifest.json</code>.</p>
+            <p style="margin-top: 8px;">Click "Re-Generate Manifest" to hash all files in the evidence folder.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function compareWithManifest(hash, name) {
+    document.getElementById('reference_hash').value = hash;
+    showToast('info', 'Reference Set', `Loaded reference hash for ${name}.`);
+}
+
+document.getElementById('hash-calc-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-hash-run');
+    const resultBox = document.getElementById('hash-live-result');
+    const formData = new FormData(e.target);
+
+    btn.disabled = true;
+    btn.innerHTML = 'Computing SHA-256...';
+
+    try {
+        const resp = await fetch('{{ url_for("api_hash_calculate") }}', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+            let matchHtml = '';
+            if (data.reference_provided) {
+                if (data.is_match) {
+                    matchHtml = `
+                        <div style="margin-top: 10px; padding: 8px 12px; background: var(--status-pass-bg); border: 1px solid var(--status-pass-border); border-radius: var(--radius-sm); color: var(--status-pass); font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span>INTEGRITY VERIFIED: Computed hash exactly matches reference!</span>
+                        </div>
+                    `;
+                } else {
+                    matchHtml = `
+                        <div style="margin-top: 10px; padding: 8px 12px; background: var(--status-fail-bg); border: 1px solid var(--status-fail-border); border-radius: var(--radius-sm); color: var(--status-fail); font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            <span>INTEGRITY MISMATCH: Computed hash DOES NOT MATCH reference!</span>
+                        </div>
+                    `;
+                }
+            }
+
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = `
+                <div class="hash-result-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600;">${data.target_name}</span>
+                        <span class="badge badge-neutral">${data.size_human}</span>
+                    </div>
+                    <div class="hash-string-container">
+                        <span class="hash-string" id="computed-hash-val">${data.sha256}</span>
+                        <button type="button" class="btn btn-sm btn-outline-green" data-copy-target="computed-hash-val">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                    ${matchHtml}
+                </div>
+            `;
+            showToast('success', 'SHA-256 Calculated', `${data.target_name} hashed successfully.`);
+        } else {
+            showToast('error', 'Hashing Error', data.error || 'Failed to compute hash.');
+        }
+    } catch (err) {
+        showToast('error', 'Network Error', 'Could not communicate with hash service.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            <span>Compute SHA-256 Digest</span>
+        `;
+    }
+});
+</script>
+{% endblock %}
