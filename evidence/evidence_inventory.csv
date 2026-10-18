@@ -1,0 +1,11 @@
+evidence_id,filename,relative_path,extension,mime_type_guess,size_bytes,size_human,created_utc,modified_utc,accessed_utc,notes
+EV-0001,disk_image.dd,evidence/disk_image.dd,.dd,application/octet-stream,2147483648,2.0 GB,2026-10-10T09:00:00Z,2026-10-10T09:00:00Z,2026-10-15T14:30:00Z,disk_image — TryHackMe Autopsy lab image (do not commit)
+EV-0002,History,evidence/browser/History,.,,3211264,3.1 MB,2026-09-14T11:22:00Z,2026-09-14T23:58:00Z,2026-10-15T14:31:00Z,browser — Chromium browser history SQLite DB
+EV-0003,System.evtx,evidence/logs/System.evtx,.evtx,application/octet-stream,69206016,66.0 MB,2026-09-01T00:00:00Z,2026-09-14T23:55:00Z,2026-10-15T14:32:00Z,log — Windows System Event Log
+EV-0004,Security.evtx,evidence/logs/Security.evtx,.evtx,application/octet-stream,134217728,128.0 MB,2026-09-01T00:00:00Z,2026-09-14T23:56:00Z,2026-10-15T14:32:00Z,log — Windows Security Event Log
+EV-0005,NTUSER.DAT,evidence/registry/NTUSER.DAT,.DAT,application/octet-stream,5242880,5.0 MB,2026-08-15T08:00:00Z,2026-09-14T20:30:00Z,2026-10-15T14:33:00Z,registry — User registry hive
+EV-0006,places.sqlite,evidence/browser/places.sqlite,.sqlite,application/x-sqlite3,20971520,20.0 MB,2026-09-01T00:00:00Z,2026-09-14T23:59:00Z,2026-10-15T14:34:00Z,database — Firefox places database
+EV-0007,downloads.csv,evidence/exports/downloads.csv,.csv,text/csv,12800,12.5 KB,2026-10-15T15:00:00Z,2026-10-15T15:00:00Z,2026-10-15T15:00:00Z,csv_data — Exported download history from Autopsy
+EV-0008,web_history.csv,evidence/exports/web_history.csv,.csv,text/csv,48200,47.1 KB,2026-10-15T15:05:00Z,2026-10-15T15:05:00Z,2026-10-15T15:05:00Z,csv_data — Exported web history from Autopsy
+EV-0009,recent_docs.csv,evidence/exports/recent_docs.csv,.csv,text/csv,6400,6.3 KB,2026-10-15T15:10:00Z,2026-10-15T15:10:00Z,2026-10-15T15:10:00Z,csv_data — Recent documents from Autopsy
+EV-0010,deleted_files.csv,evidence/exports/deleted_files.csv,.csv,text/csv,22000,21.5 KB,2026-10-15T15:15:00Z,2026-10-15T15:15:00Z,2026-10-15T15:15:00Z,csv_data — Recovered deleted file metadata

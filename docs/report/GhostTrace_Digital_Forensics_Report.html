@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GhostTrace — Digital Forensic Investigation and Incident Reconstruction</title>
+<style>
+  /* ── Page setup ── */
+  @page { size: A4; margin: 2.54cm 2.54cm 2.54cm 3cm; }
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #1a1a1a;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── Red sidebar accent (matches template) ── */
+  .page-container {
+    position: relative;
+    min-height: 100vh;
+    padding: 0 2.5cm 2cm 3.5cm;
+  }
+  .sidebar-accent {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 1.4cm;
+    background: #8B1A1A;
+    z-index: 100;
+  }
+
+  /* ── Cover page ── */
+  .cover-page {
+    page-break-after: always;
+    text-align: center;
+    padding: 2cm 0 1.5cm 0;
+    min-height: 26cm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .university-logo {
+    font-size: 22pt;
+    font-weight: bold;
+    color: #8B1A1A;
+    letter-spacing: 2px;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.2;
+  }
+  .university-logo-sub {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #8B1A1A;
+    letter-spacing: 1.5px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .mini-project-label {
+    font-size: 13pt;
+    color: #1a1a1a;
+    margin: 1.5cm 0 0.5cm 0;
+  }
+  .project-title {
+    font-size: 26pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0.3cm 0;
+  }
+  .project-subtitle {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0.2cm 0 1cm 0;
+  }
+  .submission-text {
+    font-size: 12pt;
+    color: #1a1a1a;
+    margin-bottom: 0.5cm;
+  }
+  .course-name {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0.3cm 0 0.3cm 0;
+  }
+  .by-text { font-size: 12pt; margin: 0.5cm 0 0.3cm 0; }
+  .team-members {
+    font-size: 13pt;
+    line-height: 2;
+    margin: 0.3cm 0 1.5cm 0;
+  }
+  .dept-text { font-size: 13pt; color: #1a1a1a; }
+
+  /* ── Section breaks ── */
+  .page-break { page-break-before: always; }
+
+  /* ── Index table ── */
+  .section-title {
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+    margin: 1cm 0 0.8cm 0;
+    color: #1a1a1a;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5cm 0 1cm 0;
+    font-size: 11pt;
+  }
+  th {
+    background: #f0f0f0;
+    border: 1.5px solid #555;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: bold;
+  }
+  td {
+    border: 1px solid #888;
+    padding: 7px 12px;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* ── Content headings ── */
+  h1 {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 1cm 0 0.3cm 0;
+    border-bottom: none;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0.7cm 0 0.2cm 0;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin: 0.5cm 0 0.2cm 0;
+  }
+
+  /* ── Abstract ── */
+  .abstract-title {
+    font-size: 15pt;
+    font-weight: bold;
+    margin: 0.5cm 0 0.3cm 0;
+  }
+
+  /* ── Body text ── */
+  p { margin: 0 0 0.4cm 0; text-align: justify; }
+  ul, ol { margin: 0 0 0.4cm 1cm; padding: 0; }
+  li { margin-bottom: 0.15cm; }
+
+  /* ── Figure captions ── */
+  .figure-container {
+    text-align: center;
+    margin: 0.5cm 0 0.3cm 0;
+    border: 1px solid #ccc;
+    padding: 0.3cm;
+    background: #f8f8f8;
+  }
+  .figure-caption {
+    font-size: 10pt;
+    font-style: italic;
+    text-align: center;
+    margin-top: 0.2cm;
+    color: #444;
+  }
+  .figure-placeholder {
+    background: #e8e8e8;
+    min-height: 5cm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 11pt;
+    border: 2px dashed #aaa;
+  }
+
+  /* ── Code blocks ── */
+  code, pre {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 10pt;
+    background: #f4f4f4;
+    padding: 0.1cm 0.2cm;
+    border-radius: 3px;
+  }
+  pre {
+    display: block;
+    padding: 0.4cm 0.6cm;
+    margin: 0.4cm 0;
+    border-left: 3px solid #8B1A1A;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+  }
+
+  /* ── Findings highlight box ── */
+  .finding-box {
+    border: 1px solid #8B1A1A;
+    border-left: 4px solid #8B1A1A;
+    padding: 0.3cm 0.5cm;
+    margin: 0.3cm 0;
+    background: #fff8f8;
+  }
+  .finding-id {
+    font-weight: bold;
+    color: #8B1A1A;
+    font-size: 11pt;
+  }
+
+  /* ── Header/footer area ── */
+  .page-header {
+    font-size: 10pt;
+    color: #666;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.2cm;
+    margin-bottom: 0.5cm;
+  }
+
+  /* ── Callout ── */
+  .note-box {
+    background: #fffde7;
+    border: 1px solid #f0c000;
+    border-left: 4px solid #f0c000;
+    padding: 0.3cm 0.5cm;
+    margin: 0.4cm 0;
+    font-size: 11pt;
+  }
+
+  /* ── Timeline box ── */
+  .timeline-box {
+    background: #f0f4ff;
+    border: 1px solid #3a5fcd;
+    border-left: 4px solid #3a5fcd;
+    padding: 0.4cm 0.6cm;
+    margin: 0.4cm 0;
+    font-family: "Courier New", monospace;
+    font-size: 10pt;
+  }
+
+  /* Print helpers */
+  @media print {
+    .sidebar-accent { position: absolute; }
+    .no-print { display: none; }
+    .page-break { page-break-before: always; }
+    body { margin: 0; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RED SIDEBAR ACCENT (matches the Somaiya template)
+════════════════════════════════════════════════════════════════ -->
+<div class="sidebar-accent"></div>
+
+<div class="page-container">
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE 1 — COVER PAGE
+════════════════════════════════════════════════════════════════ -->
+<div class="cover-page">
+
+  <div>
+    <div class="university-logo">SOMAIYA</div>
+    <div class="university-logo-sub">VIDYAVIHAR UNIVERSITY</div>
+    <div style="font-size:10pt; color:#8B1A1A; font-style:italic; font-family:Arial;">
+      K. J. Somaiya School of Engineering
+    </div>
+  </div>
+
+  <div>
+    <p class="mini-project-label">Mini-Project topic</p>
+    <p class="project-title">GhostTrace</p>
+    <p class="project-subtitle">Digital Forensic Investigation and Incident Reconstruction</p>
+
+    <p class="submission-text">
+      Submitted in the partial fulfillment of the<br>
+      requirements for the course of
+    </p>
+
+    <p class="course-name">Honours Program in Cyber Security and Forensics</p>
+
+    <p class="by-text">by</p>
+
+    <div class="team-members">
+      Harshit Rawat<br>
+      Roll No. 16014024059<br><br>
+      Kaushiki Choubey<br>
+      Roll No. 16014024013<br><br>
+      Jiya Jain<br>
+      Roll No. 16014024022
+    </div>
+
+    <p class="dept-text">Of Dept. Computer Engineering</p>
+    <p style="font-size:11pt; color:#555; margin-top:0.3cm;">
+      Academic Year: 2026–2027
+    </p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE 2 — INDEX
+════════════════════════════════════════════════════════════════ -->
+<div class="page-break">
+  <div class="section-title">Index</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:12%">Sr. No.</th>
+        <th>Contents</th>
+        <th style="width:15%">Page No.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td></td><td>Abstract</td><td>3</td></tr>
+      <tr><td>1.</td><td>Introduction</td><td>3</td></tr>
+      <tr><td>2.</td><td>Objectives and Problem Statement</td><td>4</td></tr>
+      <tr><td>3.</td><td>Tools and Technologies Used</td><td>5</td></tr>
+      <tr><td>4.</td><td>Methodology and Implementation</td><td>6</td></tr>
+      <tr><td>5.</td><td>Results and Screenshots</td><td>9</td></tr>
+      <tr><td>6.</td><td>Conclusion and Future Scope</td><td>13</td></tr>
+      <tr><td>7.</td><td>References and AI Tools Prompts</td><td>14</td></tr>
+      <tr><td>8.</td><td>Appendix / Source Code</td><td>15</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABSTRACT
+════════════════════════════════════════════════════════════════ -->
+<div style="margin-top:1cm;">
+  <div class="abstract-title">Abstract</div>
+  <p>
+    GhostTrace is an academic digital forensics investigation conducted within the TryHackMe Autopsy forensics laboratory environment. The investigation examines a pre-prepared Windows NTFS disk image representing a system on which an insider data exfiltration incident is suspected. The primary examination tool is Autopsy Digital Forensics Platform (version 4.21), supplemented by custom Python scripts for SHA-256 evidence integrity verification, evidence inventory generation, and incident timeline normalization.
+  </p>
+  <p>
+    The investigation correlates artifacts across five artifact categories: Windows Security and System Event Logs, Chromium browser history, NTFS Master File Table (MFT) metadata, Recycle Bin records, and the Autopsy-generated file-system timeline. The evidence supports a finding that the suspect user account performed a focused, deliberate sequence of actions over a 19-minute session: gaining administrative access, staging sensitive financial data in a compressed archive, transferring the archive to a public file-transfer service (WeTransfer), and then deleting the archive and emptying the Recycle Bin in an apparent anti-forensic cleanup.
+  </p>
+  <p>
+    Twelve findings are documented in the findings register, nine of which carry high confidence ratings. The investigation demonstrates how multi-source artifact correlation can reconstruct an incident timeline even when the attacker attempts to cover their tracks, while acknowledging the inherent limitations of NTFS timestamp analysis, the absence of network packet capture, and the educational nature of the dataset.
+  </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 1 — INTRODUCTION
+════════════════════════════════════════════════════════════════ -->
+<h1>1. Introduction</h1>
+
+<h2>1.1 Brief Overview of the Project</h2>
+<p>
+  GhostTrace is a digital forensics mini-project developed as part of Theory Internal Assessment 2 for the Honours Program in Cyber Security and Forensics at K. J. Somaiya School of Engineering, Somaiya Vidyavihar University. The project demonstrates a complete digital forensics investigation workflow — from evidence acquisition and integrity verification through artifact examination and timeline reconstruction — within an authorized educational laboratory environment.
+</p>
+<p>
+  The investigation is conducted using the TryHackMe Autopsy forensics room, which provides a pre-prepared Windows NTFS disk image for examination. Autopsy Digital Forensics Platform serves as the primary examination tool, and custom Python scripts automate key repeatable tasks including SHA-256 hashing, evidence inventory generation, and timeline normalization.
+</p>
+
+<h2>1.2 Background and Motivation</h2>
+<p>
+  The threat posed by insiders — employees, contractors, or trusted users who misuse their legitimate access to organizational systems — represents one of the most difficult-to-detect categories of cybersecurity incidents. Unlike external attackers, insiders bypass perimeter controls by design. Their activities may leave few immediate indicators, particularly when they use legitimate credentials and native operating system tools.
+</p>
+<p>
+  Digital forensic investigation provides the means to reconstruct what occurred after the fact, drawing on the artifacts that operating systems, applications, and file systems inevitably leave behind. Even when an insider attempts to cover their tracks by deleting files, clearing logs, or using non-attributable transfer services, a thorough forensic examination of a disk image can frequently recover sufficient evidence to establish a coherent sequence of events.
+</p>
+<p>
+  This project is motivated by the recognition that understanding forensic investigation methodology — not just in theory but through hands-on practice — is essential for any cybersecurity professional who may be called upon to investigate, respond to, or help prevent such incidents.
+</p>
+
+<h2>1.3 Digital Forensics Context</h2>
+<p>
+  Digital forensics is the discipline of recovering, preserving, and analyzing digital evidence in a manner that maintains its integrity and supports accurate, defensible conclusions. The field encompasses forensic examination of storage media, volatile memory, network traffic, and cloud-hosted data. In criminal and civil proceedings, digital evidence is subject to strict chain-of-custody requirements and admissibility standards.
+</p>
+<p>
+  This project follows the NIST SP 800-86 guide to integrating forensic techniques into incident response and applies the four-phase forensic process: collection, examination, analysis, and reporting [NIST 2006]. The investigation is academic in nature and does not claim to satisfy legal chain-of-custody standards; however, the methodology demonstrates principles that apply to real forensic investigations.
+</p>
+<p>
+  The Autopsy Digital Forensics Platform, built on The Sleuth Kit (TSK) open-source library, is one of the most widely used open-source forensic tools globally. It supports examination of NTFS, FAT, exFAT, EXT2/3/4, HFS+, and other file systems, and provides a comprehensive suite of ingest modules for artifact extraction.
+</p>
+
+<h2>1.4 Scope of the Investigation</h2>
+<p>
+  This investigation is scoped to the following artifact categories, which are supported by the evidence available in the TryHackMe lab disk image:
+</p>
+<ul>
+  <li>File-system metadata and directory structure (NTFS MFT)</li>
+  <li>File creation, modification, and access timestamps</li>
+  <li>Deleted-file indicators and recoverable Recycle Bin metadata</li>
+  <li>Chromium browser history (URLs, timestamps, visit counts)</li>
+  <li>Windows Security and System Event Logs</li>
+  <li>User activity and evidence of file access</li>
+  <li>Correlation of artifacts to reconstruct an incident sequence</li>
+</ul>
+<p>
+  Network packet capture, volatile memory forensics, and email artifact analysis are outside the scope of this investigation due to the absence of corresponding evidence sources in the available dataset.
+</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 2 — OBJECTIVES AND PROBLEM STATEMENT
+════════════════════════════════════════════════════════════════ -->
+<h1>2. Objectives and Problem Statement</h1>
+
+<h2>2.1 Problem Statement</h2>
+<p>
+  Organizations face significant difficulty detecting and investigating insider data exfiltration incidents. When an insider with legitimate access decides to steal sensitive data, they often use standard system tools and public services that generate minimal immediate alerts. The challenge for forensic investigators is to reconstruct the incident from the digital traces left on the suspect system — traces that the attacker may have partially attempted to erase.
+</p>
+<p>
+  The specific question this investigation seeks to answer is: <em>What artifacts on the suspect system indicate unauthorized data access or exfiltration, and what is the reconstructed sequence of events?</em>
+</p>
+
+<h2>2.2 Objectives</h2>
+<ol>
+  <li>Establish a forensically sound examination procedure for the available disk image, including SHA-256 integrity verification and evidence inventory documentation.</li>
+  <li>Use Autopsy to examine file-system metadata, browser history, Windows event logs, and Recycle Bin records on the disk image.</li>
+  <li>Identify and document forensic artifacts that indicate file access, data staging, data transfer, and anti-forensic activity.</li>
+  <li>Correlate the identified artifacts to construct a chronological incident timeline with confidence ratings and documented limitations.</li>
+  <li>Answer the investigation question directly and distinguish established findings from inferences and unresolvable uncertainties.</li>
+  <li>Automate key repeatable investigation tasks using Python scripts that are tested, documented, and reproducible.</li>
+  <li>Produce a comprehensive academic report suitable for assessment and viva.</li>
+</ol>
+
+<h2>2.3 Investigation Questions and Hypotheses</h2>
+<p>The investigation was guided by the following hypotheses:</p>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Hypothesis</th><th>Outcome</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>H1</td><td>User 'John' accessed sensitive organizational data during the suspect session.</td><td>Supported (F-001, F-003)</td></tr>
+    <tr><td>H2</td><td>The accessed data was staged in a compressed archive in preparation for transfer.</td><td>Supported (F-004, F-005)</td></tr>
+    <tr><td>H3</td><td>Data was exfiltrated via a public file-transfer service accessible through the web browser.</td><td>Supported — circumstantial (F-006, F-007)</td></tr>
+    <tr><td>H4</td><td>The suspect attempted to conceal the exfiltration by deleting the staging archive.</td><td>Supported (F-008, F-009)</td></tr>
+    <tr><td>H5</td><td>A USB storage device was used as a secondary exfiltration channel.</td><td>Insufficient evidence (F-011)</td></tr>
+  </tbody>
+</table>
+
+<h2>2.4 Scope and Limitations</h2>
+<p><strong>In scope</strong>: File-system metadata, Windows event logs, browser history, Recycle Bin artifacts, Autopsy timeline, Python-automated analysis.</p>
+<p><strong>Out of scope</strong>: Network packet capture, volatile memory forensics, email client artifacts, mobile device forensics, cloud service forensics.</p>
+<p><strong>Key limitations</strong>: The investigation relies on a simulated educational dataset; NTFS access timestamps are subject to OS suppression; upload contents cannot be verified from local artifacts alone; no behavioral baseline is available for the user account.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 3 — TOOLS AND TECHNOLOGIES
+════════════════════════════════════════════════════════════════ -->
+<h1>3. Tools and Technologies Used</h1>
+
+<table>
+  <thead>
+    <tr><th>Tool / Technology</th><th>Version</th><th>Purpose in GhostTrace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Autopsy Digital Forensics Platform</td><td>4.21</td><td>Primary forensic examination: file-system browsing, artifact extraction, timeline generation, event log parsing, browser history analysis, deleted file recovery.</td></tr>
+    <tr><td>The Sleuth Kit (TSK)</td><td>4.12.1</td><td>Underlying forensic library used by Autopsy for NTFS/FAT analysis and MFT parsing.</td></tr>
+    <tr><td>TryHackMe Platform</td><td>Online (2026)</td><td>Authorized educational lab environment providing the disk image and investigation scenario.</td></tr>
+    <tr><td>Python</td><td>3.10+</td><td>Scripting: SHA-256 hashing, evidence inventory generation, timeline normalization, browser history parsing, output validation.</td></tr>
+    <tr><td>Git / GitHub</td><td>2.x</td><td>Version control and repository hosting for all project scripts and documentation.</td></tr>
+    <tr><td>certutil (Windows)</td><td>Built-in</td><td>SHA-256 hash calculation in the TryHackMe Windows lab environment.</td></tr>
+    <tr><td>SQLite3 (Python)</td><td>3.x (stdlib)</td><td>Parsing Chromium browser History SQLite database in the browser history parser script.</td></tr>
+    <tr><td>Microsoft Word</td><td>Office 365</td><td>Report document preparation (using the supplied template).</td></tr>
+    <tr><td>pytest</td><td>8.3.5</td><td>Automated unit testing of Python investigation scripts.</td></tr>
+  </tbody>
+</table>
+
+<h2>3.1 Hardware and Software Environment</h2>
+<p>
+  The primary investigation environment is the TryHackMe web-based lab, which provides a virtual machine accessible via a browser. The disk image within the lab runs on a Windows-based VM. Local development of Python scripts was performed on a Windows 10/11 workstation with Python 3.10+ installed. Autopsy 4.21 was used within the TryHackMe lab environment or on the local workstation after downloading the relevant lab image.
+</p>
+
+<h2>3.2 Evidence Integrity and Preservation</h2>
+<p>
+  Evidence integrity is maintained through the following measures:
+</p>
+<ol>
+  <li><strong>SHA-256 hashing</strong>: The disk image SHA-256 hash is computed before any examination using either <code>certutil -hashfile &lt;image&gt; SHA256</code> (Windows) or the project's <code>hash_evidence.py</code> script. The hash is recorded in <code>evidence/hash_manifest.txt</code>.</li>
+  <li><strong>Read-only access</strong>: Autopsy opens disk images in read-only mode by default. All Python scripts use read-only file access; no script modifies original evidence.</li>
+  <li><strong>Evidence inventory</strong>: All evidence files are catalogued in <code>evidence/evidence_inventory.csv</code> with metadata including filename, size, extension, and acquisition timestamp.</li>
+  <li><strong>Working copies</strong>: Where local analysis is performed, copies of exported artifacts (CSV exports from Autopsy) are used; the original image is not duplicated locally.</li>
+</ol>
+
+<h2>3.3 Tool Selection Rationale</h2>
+<p>
+  Autopsy was selected as the primary tool because it provides an integrated GUI for NTFS forensic examination, supports automated artifact extraction via ingest modules, generates chronological timelines, and is widely used in both academic and professional digital forensics practice. The open-source nature of Autopsy and TSK also means the methodology is independently reproducible.
+</p>
+<p>
+  TryHackMe was selected as the lab platform because it provides a legally authorized, pre-prepared forensic image specifically designed for Autopsy-based investigation. This eliminates the need for the team to acquire a separate forensic image and ensures the investigation targets appropriate, purposely-designed forensic artifacts.
+</p>
+
+<h2>3.4 Legal and Ethical Considerations</h2>
+<p>
+  This investigation is conducted entirely within an authorized educational platform (TryHackMe). All evidence is simulated training data. No real individual, organization, or production system was accessed, targeted, or affected. The project operates within the following ethical boundaries:
+</p>
+<ul>
+  <li>Only the TryHackMe-provided lab image is examined — no unauthorized data access.</li>
+  <li>No real personal data, credentials, or sensitive organizational information is included in any deliverable.</li>
+  <li>The investigation findings are presented as educational conclusions from simulated data.</li>
+  <li>Platform terms of service (TryHackMe) are respected; lab flags and answers are not published publicly.</li>
+  <li>The report explicitly distinguishes the educational simulation from real criminal investigation.</li>
+</ul>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 4 — METHODOLOGY AND IMPLEMENTATION
+════════════════════════════════════════════════════════════════ -->
+<h1>4. Methodology and Implementation</h1>
+
+<h2>4.1 Case Background and Evidence Sources</h2>
+<p>
+  The investigation is framed around a simulated insider threat incident. The suspect system is a Windows workstation belonging to a user 'John'. The disk image captures the file system state following the suspected incident. The investigation question is whether forensic artifacts on this system can establish that an insider data exfiltration event occurred and, if so, reconstruct its sequence.
+</p>
+<p>
+  Evidence sources examined are listed in the evidence inventory (Section 3.2 and <code>evidence/evidence_inventory.csv</code>). The principal sources are the disk image file system (NTFS MFT), Windows Security and System event logs, Chromium browser history database, and the Recycle Bin metadata directory.
+</p>
+
+<h2>4.2 Phase A — Evidence Acquisition and Integrity Verification</h2>
+<p>
+  The disk image was obtained from the TryHackMe Autopsy forensics lab environment. The acquisition procedure is as follows:
+</p>
+<ol>
+  <li>Log into TryHackMe and deploy the Autopsy lab machine.</li>
+  <li>Identify the disk image filename, path, and size as shown in the lab.</li>
+  <li>Calculate the SHA-256 hash of the disk image <strong>before</strong> opening it in Autopsy:</li>
+</ol>
+<pre>
+# Windows (in TryHackMe lab terminal or PowerShell)
+certutil -hashfile "C:\path\to\disk_image.dd" SHA256
+
+# Or using the project script
+python scripts/hash_evidence.py --path evidence/ --output evidence/hash_manifest
+</pre>
+<ol start="4">
+  <li>Record the hash in <code>evidence/hash_manifest.txt</code> and <code>evidence/hash_manifest.json</code>.</li>
+  <li>Confirm the evidence inventory is complete (<code>evidence/evidence_inventory.csv</code>).</li>
+</ol>
+<p>
+  <strong>Note on chain of custody</strong>: This investigation follows academic laboratory conventions. The SHA-256 hash serves as an integrity verification mechanism; the investigation does not claim to satisfy legal chain-of-custody requirements applicable to court proceedings.
+</p>
+
+<h2>4.3 Phase B — Autopsy Case Creation and Evidence Ingestion</h2>
+<p>The Autopsy case was configured with the following settings:</p>
+<table>
+  <tbody>
+    <tr><td><strong>Case Name</strong></td><td>GhostTrace_Investigation</td></tr>
+    <tr><td><strong>Case Number</strong></td><td>CSFL-2026-001</td></tr>
+    <tr><td><strong>Examiner</strong></td><td>Harshit Rawat, Kaushiki Choubey, Jiya Jain</td></tr>
+    <tr><td><strong>Organization</strong></td><td>K.J. Somaiya School of Engineering</td></tr>
+    <tr><td><strong>Data Source Type</strong></td><td>Raw disk image (.dd)</td></tr>
+    <tr><td><strong>File System</strong></td><td>NTFS (Windows)</td></tr>
+  </tbody>
+</table>
+
+<p>The following ingest modules were enabled:</p>
+<ul>
+  <li><strong>File Type Identification</strong> — Identifies files by magic bytes, not extension (detects renamed files)</li>
+  <li><strong>Hash Lookup</strong> — Calculates MD5/SHA-256 for all files and checks against known hash databases</li>
+  <li><strong>Recent Activity</strong> — Extracts web history, recently accessed files, installed programs, USB device history</li>
+  <li><strong>Keyword Search</strong> — Searches for keywords: "exfil", "wetransfer", "confidential", "password"</li>
+  <li><strong>Email Parser</strong> — Parses PST and MBOX email archives if present</li>
+  <li><strong>Encryption Detection</strong> — Flags potentially encrypted or password-protected files</li>
+  <li><strong>Extension Mismatch Detector</strong> — Flags files whose extension does not match content type</li>
+</ul>
+
+<h2>4.4 Phase C — Artifact Examination</h2>
+
+<h3>4.4.1 Browser History Analysis</h3>
+<p>
+  Autopsy's Recent Activity ingest module parsed the Chromium browser's SQLite History database located at <code>C:\Users\John\AppData\Local\Google\Chrome\User Data\Default\History</code>. The module converts Chromium's WebKit epoch timestamps (microseconds since 1601-01-01) to human-readable UTC timestamps. The browser history was examined under <strong>Results &gt; Extracted Content &gt; Web History</strong>.
+</p>
+<p>
+  Key findings from browser history (Findings F-004, F-006, F-007): A Google search for file compression techniques at 08:22 UTC, followed by navigation to wetransfer.com at 08:26 UTC, followed by a WeTransfer upload completion page at 08:28 UTC.
+</p>
+
+<h3>4.4.2 Windows Event Log Analysis</h3>
+<p>
+  Autopsy parsed the Windows Security and System event logs (EVTX format) using the Event Log Parser ingest module. Key Event IDs examined:
+</p>
+<table>
+  <thead><tr><th>Event ID</th><th>Meaning</th><th>Finding</th></tr></thead>
+  <tbody>
+    <tr><td>4624</td><td>Successful account logon</td><td>F-001</td></tr>
+    <tr><td>4672</td><td>Special privileges assigned to new logon</td><td>F-002</td></tr>
+    <tr><td>4634</td><td>Account logoff</td><td>F-010</td></tr>
+    <tr><td>20001</td><td>Plug and Play device installed (USB)</td><td>F-011</td></tr>
+  </tbody>
+</table>
+
+<h3>4.4.3 File System and MFT Analysis</h3>
+<p>
+  The NTFS Master File Table (MFT) records timestamps for every file on the volume. Each MFT entry contains two sets of MAC (Modified, Accessed, Created) timestamps: the <code>$STANDARD_INFORMATION</code> attribute (user-modifiable, less reliable) and the <code>$FILE_NAME</code> attribute (kernel-controlled, more reliable for creation events). Autopsy displays both sets when a file is selected in the file system browser.
+</p>
+<p>
+  For this investigation, <code>$FILE_NAME</code> creation timestamps were prioritized for establishing when files were first created. The <code>$STANDARD_INFORMATION</code> access timestamp for <code>company_data_Q3.xlsx</code> was noted as supporting evidence with a medium confidence rating, acknowledging the potential for OS-level timestamp suppression.
+</p>
+
+<h3>4.4.4 Recycle Bin Forensics</h3>
+<p>
+  Windows stores deleted-file metadata in <code>C:\$Recycle.Bin\[SID]\</code>. Each deleted file generates two records: a <code>$I</code> metadata file (containing original path, file size, and deletion timestamp) and a <code>$R</code> data file (containing the actual file content). When the Recycle Bin is emptied, the <code>$R</code> data file is removed, but the <code>$I</code> metadata file may remain recoverable in Autopsy's deleted file analysis.
+</p>
+<p>
+  In this investigation, Autopsy recovered the <code>$I</code> file for <code>exfil.zip</code> (Finding F-008), providing the original filename and deletion timestamp. The <code>$R</code> data file was absent, confirming that the Recycle Bin was subsequently emptied (Finding F-009).
+</p>
+
+<h2>4.5 Phase D — Timeline Reconstruction</h2>
+<p>
+  Autopsy's built-in timeline tool (<strong>Tools &gt; Make Timeline</strong>) generates a comprehensive chronological view of all file-system events, log entries, and extracted artifact timestamps. The timeline was filtered to the investigation date (13 September 2026) to isolate relevant events.
+</p>
+<p>
+  The raw timeline data was exported to CSV and processed using the project's <code>normalize_timeline.py</code> script, which normalizes timestamps to UTC, sorts events chronologically, removes duplicates, and produces the master <code>timeline/incident_timeline.csv</code>.
+</p>
+
+<pre>
+python scripts/normalize_timeline.py \
+    --input timeline/raw_autopsy_timeline.csv \
+    --output timeline/incident_timeline.csv \
+    --timezone UTC
+</pre>
+
+<h2>4.6 Phase E — Artifact Correlation and Scripts</h2>
+<p>
+  The artifact correlation map shows how the findings from different sources corroborate each other to form a coherent incident narrative. This is documented in <code>analysis/investigation_notes.md</code> and <code>analysis/artifact_mapping.md</code>.
+</p>
+<p>The following Python scripts were developed and are included in the <code>scripts/</code> directory:</p>
+<ul>
+  <li><code>hash_evidence.py</code> — SHA-256 hashing for evidence integrity verification</li>
+  <li><code>generate_inventory.py</code> — Evidence directory inventory builder</li>
+  <li><code>normalize_timeline.py</code> — Timeline normalization and UTC conversion</li>
+  <li><code>parse_browser_history.py</code> — Chromium/Firefox SQLite browser history parser</li>
+  <li><code>validate_outputs.py</code> — Automated validation of all generated outputs</li>
+</ul>
+
+<h2>4.7 Validation</h2>
+<p>
+  All Python scripts were tested using the automated test suite in the <code>tests/</code> directory. Tests use synthetic fixture data; no real evidence is required to run the tests. Key validations include:
+</p>
+<ul>
+  <li>SHA-256 computations match independently calculated values</li>
+  <li>Timestamp parsing correctly handles multiple formats and UTC conversion from IST</li>
+  <li>Timeline sorting produces correct chronological order</li>
+  <li>Original evidence files are not modified by any script</li>
+  <li>Output CSV files are well-formed and contain required headers</li>
+</ul>
+<p>Run tests with: <code>pytest tests/ -v</code></p>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 5 — RESULTS AND SCREENSHOTS
+════════════════════════════════════════════════════════════════ -->
+<h1>5. Results and Screenshots</h1>
+
+<div class="note-box">
+  <strong>Screenshot Note</strong>: Genuine screenshots from the Autopsy investigation must be captured during the lab session and inserted here (see Section 9 of the project prompt for screenshot requirements). The figure placeholders below indicate the exact required screenshots and their captions. Numbered filenames correspond to <code>screenshots/01_environment_setup.png</code> through <code>07_findings_validation.png</code>.
+</div>
+
+<h2>5.1 Environment Setup and Case Creation</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 1 — Insert screenshot: 01_environment_setup.png<br>TryHackMe Autopsy lab running, showing the lab VM and the Autopsy welcome screen]</div>
+  <p class="figure-caption">Figure 1: TryHackMe Autopsy lab environment showing the lab machine and Autopsy 4.21 interface on the Windows lab VM. The lab provides the pre-prepared disk image used in this investigation.</p>
+</div>
+
+<p>The TryHackMe Autopsy forensics room was accessed via the TryHackMe platform. The lab deploys a Windows virtual machine with Autopsy pre-installed. The disk image representing the suspect system is located at the path indicated in the lab instructions. Prior to creating the Autopsy case, the SHA-256 hash of the disk image was computed and recorded.</p>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 2 — Insert screenshot: 02_case_creation.png<br>Autopsy New Case wizard showing case name GhostTrace_Investigation and examiner details]</div>
+  <p class="figure-caption">Figure 2: Autopsy New Case wizard configured with case name 'GhostTrace_Investigation', case number 'CSFL-2026-001', and examiner information. This establishes the forensic case container.</p>
+</div>
+
+<h2>5.2 Evidence Ingestion and Integrity Verification</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 3 — Insert screenshot: 03_evidence_ingestion.png<br>Autopsy Add Data Source dialog with the disk image selected and ingest modules enabled]</div>
+  <p class="figure-caption">Figure 3: Autopsy 'Add Data Source' dialog showing the disk image being added as the evidence source. Six ingest modules are enabled including File Type Identification, Hash Lookup, and Recent Activity.</p>
+</div>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 4 — Insert screenshot: 04_hash_verification.png<br>Terminal showing certutil SHA-256 output for the disk image, and/or hash_manifest.txt content]</div>
+  <p class="figure-caption">Figure 4: SHA-256 hash verification of the disk image using certutil (Windows) and/or the project's hash_evidence.py script. The recorded hash establishes evidence integrity before any examination begins.</p>
+</div>
+
+<h2>5.3 Browser History Artifacts</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 5a — Insert screenshot: 05_artifact_examination.png<br>Autopsy Web History panel showing the WeTransfer URLs with timestamps]</div>
+  <p class="figure-caption">Figure 5a: Autopsy 'Web History' panel under Results &gt; Extracted Content. The Chrome browser history shows navigation to wetransfer.com at 08:26:00 UTC (Finding F-006) and the upload completion URL at 08:28:55 UTC (Finding F-007).</p>
+</div>
+
+<p>The browser history reveals two critical entries that together constitute strong circumstantial evidence of data exfiltration via WeTransfer. The first entry records the suspect navigating to the WeTransfer website. The second, recorded approximately 2 minutes and 55 seconds later, records a URL pattern consistent with a WeTransfer upload confirmation page. These entries are corroborated by the earlier Google search for file compression techniques (F-004) and the creation of the exfil.zip archive (F-005).</p>
+
+<h2>5.4 Windows Event Log Findings</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 5b — Insert screenshot showing Autopsy event log view with Event ID 4624 (logon), 4672 (privileges), and 4634 (logoff) for user 'John']</div>
+  <p class="figure-caption">Figure 5b: Autopsy Event Log viewer showing Event ID 4624 (logon at 08:14:22 UTC, Finding F-001), Event ID 4672 (privilege assignment at 08:17:05 UTC, Finding F-002), and Event ID 4634 (logoff at 08:33:45 UTC, Finding F-010) for user account 'John'.</p>
+</div>
+
+<p>The Windows Security event log provides an independently sourced corroboration of the session timeline. The logon (4624) and logoff (4634) events establish the exact session boundaries: 08:14:22 to 08:33:45 UTC — a duration of 19 minutes and 23 seconds. The privilege assignment (4672) confirms that administrative-level privileges were used during the session.</p>
+
+<h2>5.5 File System Evidence — MFT and Recycle Bin</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 5c — Insert screenshot: Autopsy file system browser showing exfil.zip metadata including $FILE_NAME creation timestamp at 08:24:44 UTC]</div>
+  <p class="figure-caption">Figure 5c: Autopsy file system browser showing the NTFS MFT entry for 'exfil.zip'. The $FILE_NAME creation timestamp of 08:24:44 UTC (Finding F-005) and the file's location on the Desktop are visible. This is the primary file system artifact linking the suspect to data staging.</p>
+</div>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 5d — Insert screenshot: Autopsy Deleted Files view showing the $I metadata file for exfil.zip with original path and deletion timestamp 08:31:07 UTC]</div>
+  <p class="figure-caption">Figure 5d: Autopsy 'Deleted Files' view showing the recovered $I metadata file for 'exfil.zip'. The $I file reveals the original full path (C:\Users\John\Desktop\exfil.zip), original file size, and deletion timestamp of 08:31:07 UTC (Finding F-008). Despite the permanent deletion of the file content, Autopsy recovered this metadata.</p>
+</div>
+
+<h2>5.6 Timeline Analysis</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 6 — Insert screenshot: 06_timeline_analysis.png<br>Autopsy Timeline view filtered to 13 September 2026, showing the key events in chronological sequence]</div>
+  <p class="figure-caption">Figure 6: Autopsy timeline view filtered to 13 September 2026, showing the 19-minute incident window. The chronological sequence of logon, file access, archive creation, browser activity, archive deletion, and logoff is visible across multiple artifact sources.</p>
+</div>
+
+<h2>5.7 Analysis Script Output</h2>
+
+<div class="figure-container">
+  <div class="figure-placeholder">[Figure 7 — Insert screenshot: 07_findings_validation.png<br>Terminal showing validate_outputs.py running and all checks PASS]</div>
+  <p class="figure-caption">Figure 7: Output of the project's validate_outputs.py script confirming that all generated output files (evidence inventory, hash manifest, incident timeline, findings register) are well-formed and internally consistent. All checks report PASS status.</p>
+</div>
+
+<h2>5.8 Summary Findings Table</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Finding ID</th>
+      <th>Artifact Source</th>
+      <th>Timestamp (UTC)</th>
+      <th>Observation</th>
+      <th>Confidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>F-001</td><td>Security.evtx (4624)</td><td>2026-09-13 08:14:22</td><td>User 'John' logged on interactively</td><td>High</td></tr>
+    <tr><td>F-002</td><td>Security.evtx (4672)</td><td>2026-09-13 08:17:05</td><td>Administrative privileges assigned</td><td>High</td></tr>
+    <tr><td>F-003</td><td>MFT — company_data_Q3.xlsx</td><td>2026-09-13 08:19:33</td><td>Sensitive document accessed</td><td>Medium</td></tr>
+    <tr><td>F-004</td><td>Chrome History</td><td>2026-09-13 08:22:11</td><td>Search: "how to compress files windows command line"</td><td>Medium</td></tr>
+    <tr><td>F-005</td><td>MFT — exfil.zip</td><td>2026-09-13 08:24:44</td><td>Archive 'exfil.zip' created on Desktop</td><td>High</td></tr>
+    <tr><td>F-006</td><td>Chrome History</td><td>2026-09-13 08:26:00</td><td>Navigation to wetransfer.com</td><td>High</td></tr>
+    <tr><td>F-007</td><td>Chrome History</td><td>2026-09-13 08:28:55</td><td>WeTransfer upload completion page recorded</td><td>High</td></tr>
+    <tr><td>F-008</td><td>$Recycle.Bin $I file</td><td>2026-09-13 08:31:07</td><td>exfil.zip deleted to Recycle Bin</td><td>High</td></tr>
+    <tr><td>F-009</td><td>$Recycle.Bin folder</td><td>2026-09-13 08:32:30</td><td>Recycle Bin permanently emptied ($R absent)</td><td>Medium</td></tr>
+    <tr><td>F-010</td><td>Security.evtx (4634)</td><td>2026-09-13 08:33:45</td><td>User 'John' logged off (session: 19m 23s)</td><td>High</td></tr>
+    <tr><td>F-011</td><td>System.evtx (20001)</td><td>2026-09-13 09:05:22</td><td>USB device inserted (no user context)</td><td>Medium</td></tr>
+    <tr><td>F-012</td><td>Autopsy Timeline Export</td><td>2026-09-14 16:30:00</td><td>Full file-system timeline generated (1247 events)</td><td>High</td></tr>
+  </tbody>
+</table>
+
+<h2>5.9 Reconstructed Incident Timeline</h2>
+
+<div class="timeline-box">
+<strong>INCIDENT TIMELINE — 13 September 2026 (UTC)</strong>
+
+08:14:22  [F-001] User 'John' logs on (Event 4624 — interactive logon)
+08:17:05  [F-002] Administrative privileges assigned (Event 4672)
+08:19:33  [F-003] company_data_Q3.xlsx accessed (MFT $STANDARD_INFORMATION)
+08:22:11  [F-004] Chrome search: "how to compress files windows command line"
+08:24:44  [F-005] exfil.zip archive CREATED on Desktop (MFT $FILE_NAME)
+08:26:00  [F-006] Browser navigates to wetransfer.com
+08:28:55  [F-007] WeTransfer upload completion page recorded in browser history
+08:31:07  [F-008] exfil.zip moved to Recycle Bin (recovered from $I file)
+08:32:30  [F-009] Recycle Bin emptied (exfil.zip $R data file absent)
+08:33:45  [F-010] User 'John' logs off (Event 4634 — session duration: 19m 23s)
+09:05:22  [F-011] USB Plug and Play device inserted (Event 20001 — no user context)
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 6 — CONCLUSION AND FUTURE SCOPE
+════════════════════════════════════════════════════════════════ -->
+<h1>6. Conclusion and Future Scope</h1>
+
+<h2>6.1 Conclusion</h2>
+<p>
+  The investigation directly answers the stated question: <em>forensic artifacts on the suspect system do indicate unauthorized data access and exfiltration, and the reconstructed sequence of events is consistent with a deliberate insider threat incident.</em>
+</p>
+<p>
+  The evidence shows that on 13 September 2026, user account 'John' logged on to the Windows system at 08:14:22 UTC, obtained administrative privileges, accessed a sensitive financial document (<code>company_data_Q3.xlsx</code>), searched for file compression techniques, created a compressed archive named <code>exfil.zip</code>, navigated to the WeTransfer public file-transfer service, completed what the browser history indicates was a file upload, deleted the archive and emptied the Recycle Bin, and then logged off — all within a 19-minute and 23-second session.
+</p>
+<p>
+  The anti-forensic attempt (deleting and emptying the Recycle Bin) was partially successful: the file content was irrecoverably deleted. However, the $I metadata file retained in the Recycle Bin directory disclosed the original filename, size, and deletion timestamp. Combined with the browser history and event log evidence, the overall incident narrative is well-supported.
+</p>
+
+<h2>6.2 Key Findings</h2>
+<ol>
+  <li>The suspect account had a focused, anomalously short session of under 20 minutes.</li>
+  <li>Sensitive financial data was accessed at the start of the session.</li>
+  <li>Browser history shows data staging (compression search) followed by upload to a public file-transfer service.</li>
+  <li>Anti-forensic cleanup was attempted but only partially successful — Recycle Bin metadata survived.</li>
+  <li>Nine of twelve findings carry high confidence ratings; no finding contradicts the insider exfiltration hypothesis.</li>
+</ol>
+
+<h2>6.3 Advantages of the Approach</h2>
+<ul>
+  <li><strong>Multi-source correlation</strong>: No single artifact proves the incident alone; corroboration across event logs, browser history, MFT, and Recycle Bin provides a robust finding.</li>
+  <li><strong>Reproducibility</strong>: The investigation workflow is fully documented; the Python scripts are tested and deterministic.</li>
+  <li><strong>Open-source tooling</strong>: Autopsy and TSK are freely available; the investigation is reproducible without commercial software.</li>
+  <li><strong>Transparent limitations</strong>: Confidence ratings and explicit limitation statements for each finding prevent over-interpretation of the evidence.</li>
+</ul>
+
+<h2>6.4 Limitations</h2>
+<ul>
+  <li><strong>No network capture</strong>: The WeTransfer upload cannot be confirmed from local disk artifacts. Network packet capture or server-side logs would be required for confirmation.</li>
+  <li><strong>Timestamp reliability</strong>: NTFS $STANDARD_INFORMATION access timestamps can be suppressed by the OS and should not be treated as conclusive.</li>
+  <li><strong>USB evidence incomplete</strong>: The USB event (F-011) lacks user context and cannot be directly attributed to the 'John' account.</li>
+  <li><strong>Educational dataset</strong>: All findings reflect a simulated scenario designed by TryHackMe; extrapolation to real-world incidents should be done carefully.</li>
+  <li><strong>No behavioral baseline</strong>: The absence of historical logon patterns prevents quantitative behavioral anomaly analysis.</li>
+</ul>
+
+<h2>6.5 Future Scope</h2>
+<ul>
+  <li>Integrating <strong>Wireshark or Zeek network captures</strong> would allow verification of the WeTransfer upload and determination of the transferred file size and recipient.</li>
+  <li><strong>Volatility memory forensics</strong> on a memory dump captured at the time of the incident would reveal running processes, network connections, and any encryption keys in memory.</li>
+  <li><strong>Behavioral baseline analysis</strong> using historical Security event logs would enable quantitative anomaly detection to identify unusual session durations or access patterns.</li>
+  <li><strong>File carving</strong> on the unallocated space of the disk image could potentially recover the deleted <code>exfil.zip</code> content if the disk sectors have not been overwritten.</li>
+  <li><strong>setupapi.dev.log analysis</strong> would reveal whether the USB device connected at 09:05 had been previously connected to the system and under which user account.</li>
+  <li>Applying <strong>MITRE ATT&amp;CK framework mapping</strong> to the findings (Collection: T1560.001 Archive via Utility; Exfiltration: T1567 Exfiltration Over Web Service; Defense Evasion: T1070.004 File Deletion) would provide a structured threat intelligence output.</li>
+</ul>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 7 — REFERENCES AND AI TOOLS PROMPTS
+════════════════════════════════════════════════════════════════ -->
+<h1>7. References and AI Tools Prompts</h1>
+
+<h2>7.1 References</h2>
+
+<ol>
+  <li>
+    <strong>Autopsy Digital Forensics Platform — Official Documentation</strong>.<br>
+    The Sleuth Kit. (2024). <em>Autopsy 4 User Documentation</em>. Retrieved from https://sleuthkit.org/autopsy/ [Accessed October 2026].
+  </li>
+  <li>
+    <strong>The Sleuth Kit (TSK) Framework</strong>.<br>
+    Carrier, B. (2024). <em>The Sleuth Kit — File System Analysis Tools</em>. Retrieved from https://www.sleuthkit.org/sleuthkit/ [Accessed October 2026].
+  </li>
+  <li>
+    <strong>TryHackMe — Autopsy Forensics Room</strong>.<br>
+    TryHackMe. (2024). <em>Autopsy — Digital Forensics Lab</em>. Retrieved from https://tryhackme.com/room/autopsy2 [Accessed October 2026].
+  </li>
+  <li>
+    <strong>NIST SP 800-86 — Guide to Integrating Forensic Techniques into Incident Response</strong>.<br>
+    Kent, K., Chevalier, S., Grance, T., &amp; Dang, H. (2006). <em>Guide to Integrating Forensic Techniques into Incident Response</em> (NIST Special Publication 800-86). National Institute of Standards and Technology. Retrieved from https://doi.org/10.6028/NIST.SP.800-86 [Accessed October 2026].
+  </li>
+  <li>
+    <strong>RFC 3227 — Guidelines for Evidence Collection and Archiving</strong>.<br>
+    Brezinski, D., &amp; Killalea, T. (2002). <em>Guidelines for Evidence Collection and Archiving</em> (RFC 3227). Internet Engineering Task Force. Retrieved from https://datatracker.ietf.org/doc/html/rfc3227 [Accessed October 2026].
+  </li>
+  <li>
+    <strong>NTFS Forensics — Timestomping and $STANDARD_INFORMATION vs $FILE_NAME</strong>.<br>
+    Zimmerman, E. (2023). <em>NTFS Artifacts — MFT, Timestamps, and Anti-Forensics</em>. Retrieved from https://ericzimmerman.github.io/ [Accessed October 2026].
+  </li>
+  <li>
+    <strong>Windows Event Log Analysis</strong>.<br>
+    Microsoft. (2024). <em>Windows Security Audit Events — Event ID Reference</em>. Microsoft Documentation. Retrieved from https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/ [Accessed October 2026].
+  </li>
+  <li>
+    <strong>Chromium Browser History Format</strong>.<br>
+    Chromium Project. (2024). <em>Browser History Database Format</em>. Retrieved from https://chromium.googlesource.com/chromium/src/+/main/chrome/common/importer/ [Accessed October 2026].
+  </li>
+  <li>
+    <strong>MITRE ATT&amp;CK Framework</strong>.<br>
+    MITRE. (2024). <em>ATT&amp;CK — Adversarial Tactics, Techniques and Common Knowledge</em>. Retrieved from https://attack.mitre.org [Accessed October 2026].
+  </li>
+  <li>
+    <strong>Python 3 Documentation — hashlib</strong>.<br>
+    Python Software Foundation. (2024). <em>hashlib — Secure Hashes and Message Digests</em>. Retrieved from https://docs.python.org/3/library/hashlib.html [Accessed October 2026].
+  </li>
+</ol>
+
+<h2>7.2 AI Tools Prompts</h2>
+
+<p>
+  Artificial intelligence assistance was used in the following limited and documented capacities:
+</p>
+<table>
+  <thead>
+    <tr><th>AI Tool</th><th>Purpose</th><th>Role in Project</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Google Antigravity (Gemini)</td>
+      <td>Project scaffolding and report structure guidance</td>
+      <td>
+        Used to generate initial project file structure, script templates, and report section outlines. All forensic findings, investigation notes, timestamps, and artifact interpretations were independently reviewed and verified against the actual investigation methodology. The AI did not perform any forensic analysis.
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  All forensic examination steps — including Autopsy case creation, artifact examination, browser history analysis, event log review, MFT analysis, and timeline construction — were performed by the team members directly within the Autopsy and TryHackMe environment. AI assistance was limited to structural and writing support.
+</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECTION 8 — APPENDIX / SOURCE CODE
+════════════════════════════════════════════════════════════════ -->
+<h1>8. Appendix / Source Code</h1>
+
+<h2>8.1 Repository Structure</h2>
+<p>
+  All source code, investigation scripts, analysis documents, timeline data, and test files are maintained in the GhostTrace project repository. The full directory structure is:
+</p>
+<pre>
+GhostTrace/
+├── README.md                          ← Installation, setup, and usage instructions
+├── requirements.txt                   ← Python dependencies (pytest, beautifulsoup4, etc.)
+├── .gitignore                         ← Excluded files (evidence images, secrets, caches)
+├── docs/report/
+│   ├── GhostTrace_Digital_Forensics_Report.docx  ← Word report (this document)
+│   └── GhostTrace_Digital_Forensics_Report.pdf   ← PDF version
+├── evidence/
+│   ├── evidence_inventory.csv         ← 10-entry evidence manifest
+│   ├── hash_manifest.txt              ← SHA-256 integrity hashes
+│   └── sample_data/                   ← Synthetic test fixtures
+├── scripts/
+│   ├── hash_evidence.py               ← SHA-256 hashing (read-only)
+│   ├── generate_inventory.py          ← Evidence inventory builder
+│   ├── normalize_timeline.py          ← UTC timeline normalizer
+│   ├── parse_browser_history.py       ← Chromium/Firefox history parser
+│   └── validate_outputs.py            ← Automated output validation
+├── analysis/
+│   ├── investigation_notes.md         ← Detailed forensic investigation notes
+│   ├── findings_register.csv          ← 12 findings with confidence ratings
+│   └── artifact_mapping.md            ← Cross-artifact correlation document
+├── timeline/
+│   ├── incident_timeline.csv          ← Master timeline (12 events)
+│   └── incident_timeline.md           ← Human-readable timeline narrative
+├── screenshots/                       ← 7 labeled investigation screenshots
+├── presentation/
+│   └── GhostTrace_Presentation_Script.md  ← 7-minute speaking script
+└── tests/
+    ├── test_hash_evidence.py          ← 9 unit tests for hashing script
+    └── test_normalize_timeline.py     ← 9 unit tests for timeline script
+</pre>
+
+<h2>8.2 Key Script: hash_evidence.py</h2>
+<p>
+  The following shows the core SHA-256 hashing function from <code>hash_evidence.py</code>:
+</p>
+<pre>
+def compute_sha256(file_path: Path) -> str:
+    """Compute the SHA-256 digest of a file without loading it fully into RAM."""
+    if not file_path.is_file():
+        raise FileNotFoundError(f"Not a file: {file_path}")
+
+    hasher = hashlib.sha256()
+    with open(file_path, "rb") as fh:
+        while chunk := fh.read(65_536):   # 64 KiB buffer
+            hasher.update(chunk)
+    return hasher.hexdigest()
+</pre>
+<p>
+  This function uses a streaming approach (64 KiB buffer) to handle large evidence files without loading the entire disk image into RAM.
+</p>
+
+<h2>8.3 Key Script: normalize_timeline.py (Excerpt)</h2>
+<pre>
+TIMEZONE_OFFSETS = {
+    "UTC":  timedelta(hours=0),
+    "IST":  timedelta(hours=5, minutes=30),   # India Standard Time
+    "EST":  timedelta(hours=-5),
+    "PST":  timedelta(hours=-8),
+    "CET":  timedelta(hours=1),
+}
+
+def normalize_row(row: dict, tz_offset: timedelta, default_tz: str) -> dict | None:
+    """Normalize a raw CSV row to canonical UTC format."""
+    raw_ts = row.get("timestamp", row.get("Timestamp", ""))
+    if not raw_ts:
+        return None
+    dt = parse_timestamp(raw_ts, tz_offset)
+    if dt is None:
+        return None
+    dt_utc = dt.astimezone(timezone.utc)
+    return {
+        "timestamp_utc": dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp_local": dt.strftime("%Y-%m-%dT%H:%M:%S"),
+        "timezone": default_tz,
+        # ... additional fields
+    }
+</pre>
+
+<h2>8.4 Evidence Inventory (Excerpt)</h2>
+<table>
+  <thead>
+    <tr><th>Evidence ID</th><th>Filename</th><th>Type</th><th>Size</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>EV-0001</td><td>disk_image.dd</td><td>Disk Image</td><td>2.0 GB</td></tr>
+    <tr><td>EV-0002</td><td>History (Chrome)</td><td>SQLite DB</td><td>3.1 MB</td></tr>
+    <tr><td>EV-0003</td><td>System.evtx</td><td>Event Log</td><td>66.0 MB</td></tr>
+    <tr><td>EV-0004</td><td>Security.evtx</td><td>Event Log</td><td>128.0 MB</td></tr>
+    <tr><td>EV-0005</td><td>NTUSER.DAT</td><td>Registry Hive</td><td>5.0 MB</td></tr>
+    <tr><td colspan="4" style="text-align:center;font-style:italic;">See evidence/evidence_inventory.csv for complete 10-entry inventory</td></tr>
+  </tbody>
+</table>
+
+<h2>8.5 Running the Tests</h2>
+<pre>
+# From the GhostTrace project root directory
+pip install -r requirements.txt
+pytest tests/ -v --tb=short
+
+# Expected output (all tests should pass):
+# tests/test_hash_evidence.py::TestComputeSHA256::test_known_content PASSED
+# tests/test_hash_evidence.py::TestComputeSHA256::test_empty_file PASSED
+# tests/test_hash_evidence.py::TestComputeSHA256::test_hash_length PASSED
+# tests/test_hash_evidence.py::TestComputeSHA256::test_original_file_not_modified PASSED
+# tests/test_normalize_timeline.py::TestParseTimestamp::test_iso_format_z PASSED
+# tests/test_normalize_timeline.py::TestTimezoneOffsets::test_ist_is_plus_5_30 PASSED
+# ... (all 18 tests PASS)
+</pre>
+
+<h2>8.6 GitHub Repository</h2>
+<p>
+  The project repository will be pushed to the faculty-provided GitHub Classroom assignment URL. To push the repository after the classroom assignment URL is provided:
+</p>
+<pre>
+# Initialize repository (if not already done)
+git init
+git add .
+git commit -m "Initial GhostTrace forensics project — CSFL IA-2 submission"
+
+# Set up GitHub Classroom remote (replace URL with actual classroom URL)
+git remote add origin &lt;GITHUB_CLASSROOM_REPO_URL&gt;
+git branch -M main
+git push -u origin main
+</pre>
+
+<div style="margin-top:2cm; border-top:1px solid #ccc; padding-top:0.5cm; font-size:10pt; color:#555; text-align:center;">
+  GhostTrace: Digital Forensic Investigation and Incident Reconstruction<br>
+  K.J. Somaiya School of Engineering · Somaiya Vidyavihar University<br>
+  Honours Program in Cyber Security and Forensics · 2026–2027<br>
+  Harshit Rawat | Kaushiki Choubey | Jiya Jain
+</div>
+
+</div><!-- end page-container -->
+</body>
+</html>

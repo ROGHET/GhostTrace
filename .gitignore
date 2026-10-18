@@ -1,0 +1,55 @@
+# GhostTrace — Digital Forensics Investigation Project
+# .gitignore
+
+# ─── Python environments ───────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+
+# ─── Testing ───────────────────────────────────────────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# ─── IDEs and editors ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# ─── Forensic evidence (never commit raw disk images or sensitive data) ────────
+evidence/*.dd
+evidence/*.img
+evidence/*.E01
+evidence/*.AFF
+evidence/*.vmdk
+evidence/*.iso
+evidence/raw/
+evidence/acquired/
+
+# ─── Sensitive outputs ─────────────────────────────────────────────────────────
+*.key
+*.pem
+.env
+.env.*
+secrets.py
+
+# ─── Generated / temporary files ───────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+~$*
+
+# ─── OS generated ──────────────────────────────────────────────────────────────
+desktop.ini
+$RECYCLE.BIN/
