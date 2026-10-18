@@ -149,6 +149,7 @@ def get_dashboard_stats() -> dict:
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
 @app.route("/")
+@app.route("/api/index")
 def dashboard():
     """Overview dashboard displaying case metrics and latest incident status."""
     stats = get_dashboard_stats()
@@ -658,7 +659,7 @@ def api_system_status():
 
 @app.errorhandler(404)
 def handle_404(e):
-    if request.path.startswith("/api/"):
+    if request.path.startswith("/api/") and not request.path.startswith("/api/index"):
         return jsonify({"success": False, "error": "Endpoint or resource not found"}), 404
     return render_template("dashboard.html", active_page="dashboard", stats=get_dashboard_stats(), recent_events=[]), 404
 
