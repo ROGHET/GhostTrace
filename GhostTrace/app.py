@@ -148,6 +148,16 @@ def get_dashboard_stats() -> dict:
 
 # ─── Routes ──────────────────────────────────────────────────────────────────
 
+@app.route("/api/debug-env")
+def debug_env():
+    return jsonify({
+        "path_info": request.environ.get("PATH_INFO"),
+        "request_path": request.path,
+        "environ_keys": [k for k in request.environ.keys() if "PATH" in k or "VERCEL" in k or "URI" in k or "MATCH" in k],
+        "headers": dict(request.headers),
+    })
+
+
 @app.route("/")
 @app.route("/api/index")
 def dashboard():
