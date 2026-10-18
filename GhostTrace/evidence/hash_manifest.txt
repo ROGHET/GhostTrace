@@ -1,0 +1,45 @@
+GhostTrace — SHA-256 Evidence Hash Manifest
+Generated : 2026-10-15T09:00:00Z (acquisition date)
+Algorithm : SHA-256
+Platform  : TryHackMe Autopsy Lab — Windows disk image
+Examiner  : Harshit Rawat, Kaushiki Choubey, Jiya Jain
+Note      : Hashes below are recorded from the TryHackMe lab environment.
+            The disk image is not stored in this repository.
+            Hash values MUST be verified against the original image before examination.
+========================================================================
+
+IMPORTANT — Chain of Custody Note
+-----------------------------------
+This is an academic laboratory exercise using a disk image provided by
+TryHackMe as part of their Autopsy forensics room. The image is a
+pre-prepared educational dataset. The hashes below are to be recorded
+directly from the lab environment using the hash_evidence.py script
+or the sha256sum / certutil utility:
+
+Windows:  certutil -hashfile <image.dd> SHA256
+Linux:    sha256sum <image.dd>
+Python:   python scripts/hash_evidence.py --path <image.dd> --output evidence/hash_manifest
+
+========================================================================
+
+INSTRUCTIONS FOR COMPLETING THIS MANIFEST
+-------------------------------------------
+When you run the TryHackMe Autopsy lab, execute the following to record
+the actual SHA-256 hash and update this file:
+
+1. In the TryHackMe lab VM, open a terminal or PowerShell
+2. Run: certutil -hashfile "C:\path\to\image.dd" SHA256
+3. Record the output hash here and in hash_manifest.json
+4. Note the file size in bytes
+5. Record the UTC timestamp of acquisition
+
+SAMPLE RECORD (update with real values from lab):
+--------------------------------------------------
+File      : disk_image.dd (or the actual filename shown in TryHackMe)
+Size      : [Record actual file size in bytes from lab]
+SHA-256   : [Record actual SHA-256 hash from lab — 64 hex characters]
+Modified  : [Record the file last-modified timestamp from lab in UTC]
+Acquired  : 2026-10-15T09:00:00Z (update with actual date/time)
+Acquired by: Harshit Rawat
+
+========================================================================

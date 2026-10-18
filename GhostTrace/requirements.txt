@@ -1,0 +1,23 @@
+# hashbench - evidence hashing
+hashlib
+pathlib
+
+# CSV/Timeline processing
+csv
+
+# Standard library only for core scripts — no external deps needed
+# The following are for optional extended analysis:
+
+# Evidence parsing utilities
+python-magic==0.4.27
+
+# Autopsy report parsing (XML/HTML)
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# Timeline normalisation
+python-dateutil==2.9.0.post0
+
+# Testing
+pytest==8.3.5
+pytest-cov==6.0.0
