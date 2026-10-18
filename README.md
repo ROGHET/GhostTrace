@@ -35,14 +35,34 @@ GhostTrace is an academic digital forensics investigation project that reconstru
 
 ```
 GhostTrace/
-├── README.md                          ← This file
+├── app.py                             ← Cyber Forensics Flask GUI Workbench
 ├── requirements.txt                   ← Python dependencies
 ├── .gitignore                         ← Excluded files
+│
+├── templates/                         ← Cyber-themed Jinja templates (NO emojis)
+│   ├── base.html                      ← Base layout, Lucide SVGs, sidebar & topbar
+│   ├── dashboard.html                 ← Case overview, metrics & activity feed
+│   ├── evidence.html                  ← Evidence inventory & metadata inspection
+│   ├── hash_verification.html         ← SHA-256 chunked hasher & reference match
+│   ├── timeline.html                  ← Visual interactive graph & table timeline
+│   ├── browser_forensics.html         ← SQLite history extractor & exfil highlights
+│   ├── findings.html                  ← Facts vs inferences findings matrix
+│   ├── validation.html                ← Live automated audit validator runner
+│   ├── reports.html                   ← In-app academic report frame & metadata
+│   └── settings.html                  ← Security boundaries & environment info
+│
+├── static/
+│   ├── css/
+│   │   └── style.css                  ← Dark cyber aesthetic (#050807, terminal green #00FF88)
+│   └── js/
+│       ├── binary-background.js       ← Smooth cursor-reactive animated canvas
+│       └── app.js                     ← UI controls, copy-to-clipboard, toast system
 │
 ├── docs/
 │   └── report/
 │       ├── GhostTrace_Digital_Forensics_Report.docx   ← Final report (Word)
-│       └── GhostTrace_Digital_Forensics_Report.pdf    ← PDF version
+│       ├── GhostTrace_Digital_Forensics_Report.pdf    ← PDF version
+│       └── GhostTrace_Digital_Forensics_Report.html   ← Somaiya-formatted report
 │
 ├── evidence/
 │   ├── evidence_inventory.csv         ← Evidence manifest
@@ -162,6 +182,59 @@ Checks that all generated outputs are consistent and well-formed.
 ```bash
 python scripts/validate_outputs.py
 ```
+
+---
+
+## GhostTrace Cyber Forensics GUI Workbench
+
+GhostTrace includes a complete, minimalistic, dark cybersecurity-themed web workbench designed for forensic investigators and academic presentation.
+
+### Key Features
+- **Visual Aesthetic**: Near-black (`#050807`), card dark (`#0D1511`), terminal green (`#00FF88`), and muted green (`#00B86B`) color palette with clean monospace telemetry.
+- **Strictly No Emojis**: 100% professional Lucide SVG iconography throughout all navigation, headings, buttons, notifications, and reports.
+- **Interactive Binary Background**: HTML5 Canvas rendering subtle binary streams (`0` and `1`) in muted green tones with smooth cursor-reactive displacement and ripple waves.
+- **Native Python Backend**: Directly invokes the core forensic scripts for hashing, inventory generation, timeline normalization, and validation without external cloud dependencies.
+- **Zero-Trust Local Security**: Bound strictly to `127.0.0.1:5000` with path traversal guards and read-only evidence handling.
+
+### Quick Start (Windows)
+
+1. **Activate Virtual Environment**:
+   ```powershell
+   .venv\Scripts\activate
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Launch the Workbench**:
+   ```bash
+   python app.py
+   ```
+
+4. **Access the Application**:
+   Open your web browser and navigate to:
+   ```
+   http://127.0.0.1:5000
+   ```
+
+5. **Stop the Application**:
+   Press `Ctrl + C` in the running terminal.
+
+### Application Modules
+
+| Module | Route | Description |
+|--------|-------|-------------|
+| **Overview** | `/` | Real-time case intelligence, artifact counters, 19-minute incident summary, and quick action launcher. |
+| **Evidence Inventory** | `/evidence` | Master catalog of registered forensic artifacts with category filters and local metadata inspector. |
+| **Hash Verification** | `/hash-verification` | Chunked 64 KiB SHA-256 hasher with instant reference comparison and manifest regeneration. |
+| **Timeline Analysis** | `/timeline` | Interactive visual sequence graph and searchable master table with on-the-fly timezone normalizer. |
+| **Browser Forensics** | `/browser-forensics` | Chromium SQLite History decoder converting WebKit epoch timestamps to uncover search queries and exfiltration URLs. |
+| **Findings Register** | `/findings` | Structured findings matrix enforcing scientific separation of observed facts from investigator inferences. |
+| **Validation Center** | `/validation` | Real-time audit runner executing 29 integrity checks across schemas, manifests, timestamps, and documentation. |
+| **Academic Report** | `/reports` | Embedded viewer for the official Somaiya red-sidebar HTML investigation report. |
+| **Settings** | `/settings` | System environment diagnostics, path traversal security boundaries, and canvas animation toggles. |
 
 ---
 

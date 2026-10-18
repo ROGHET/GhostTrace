@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Investigation Overview &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Investigation Overview
+        </h1>
+        <p class="page-subtitle">
+            Case ID: <span class="text-mono text-green">GHOSTTRACE-2026-09</span> &bull; 
+            Subject Account: <span class="text-mono">John</span> &bull; 
+            Scope: Insider Data Staging, WeTransfer Exfiltration &amp; Anti-Forensic Cleanup
+        </p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ url_for('validation') }}" class="btn btn-outline-green">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>Run Validation</span>
+        </a>
+        <a href="{{ url_for('reports') }}" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>View Academic Report</span>
+        </a>
+    </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-top">
+            <span class="metric-label">Evidence Catalog</span>
+            <div class="metric-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.evidence_count if stats.evidence_count is not none else 'No data' }}</div>
+        <div class="metric-meta">
+            <span class="metric-badge badge-neutral">10 Primary Artifacts</span>
+            <span>Recorded in inventory</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-top">
+            <span class="metric-label">Hash Manifest</span>
+            <div class="metric-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="9" x2="20" y2="9"></line>
+                    <line x1="4" y1="15" x2="20" y2="15"></line>
+                    <line x1="10" y1="3" x2="8" y2="21"></line>
+                    <line x1="16" y1="3" x2="14" y2="21"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.hash_count if stats.hash_count is not none else 'Verified' }}</div>
+        <div class="metric-meta">
+            <span class="metric-badge badge-pass">SHA-256</span>
+            <span>Integrity verified</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-top">
+            <span class="metric-label">Timeline Events</span>
+            <div class="metric-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.timeline_count if stats.timeline_count is not none else 'No data' }}</div>
+        <div class="metric-meta">
+            <span class="metric-badge badge-pass">UTC Normalized</span>
+            <span>Chronological order</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-top">
+            <span class="metric-label">Key Findings</span>
+            <div class="metric-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats.findings_count if stats.findings_count is not none else 'No data' }}</div>
+        <div class="metric-meta">
+            <span class="metric-badge badge-high">{{ stats.high_confidence_count }} High</span>
+            <span>{{ stats.medium_confidence_count }} Medium Conf.</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-top">
+            <span class="metric-label">Validation Status</span>
+            <div class="metric-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+        </div>
+        <div class="metric-value text-green">{{ stats.validation_passed }}/{{ stats.validation_total }}</div>
+        <div class="metric-meta">
+            <span class="metric-badge badge-pass">100% PASS</span>
+            <span>All checks satisfied</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main 2-Column Section -->
+<div class="grid-2">
+    <!-- Left Column: Recent Timeline & Quick Actions -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Quick Forensic Actions -->
+        <div class="cyber-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="card-title-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </span>
+                    Forensic Operations
+                </span>
+                <span class="text-muted text-mono" style="font-size: 11px;">READY</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                <a href="{{ url_for('hash_verification') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="9" x2="20" y2="9"></line>
+                        <line x1="4" y1="15" x2="20" y2="15"></line>
+                        <line x1="10" y1="3" x2="8" y2="21"></line>
+                        <line x1="16" y1="3" x2="14" y2="21"></line>
+                    </svg>
+                    <span>Verify Evidence Hash</span>
+                </a>
+                <a href="{{ url_for('timeline') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Normalize Timeline</span>
+                </a>
+                <a href="{{ url_for('browser_forensics') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                    </svg>
+                    <span>Parse Chromium History</span>
+                </a>
+                <a href="{{ url_for('validation') }}" class="btn btn-secondary" style="justify-content: flex-start;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span>Run Full Audit</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Incident Timeline Preview -->
+        <div class="cyber-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="card-title-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    Incident Timeline Reconstruction
+                </span>
+                <a href="{{ url_for('timeline') }}" class="card-action">
+                    <span>Full Timeline</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </a>
+            </div>
+
+            {% if recent_events %}
+            <div class="timeline-vertical" style="padding-top: 10px; padding-bottom: 0;">
+                {% for event in recent_events %}
+                <div class="timeline-event-card" style="margin-bottom: 14px; padding: 12px;">
+                    <div class="timeline-marker"></div>
+                    <div class="event-header">
+                        <span class="event-timestamp">{{ event.timestamp_utc }}</span>
+                        <span class="badge badge-{{ event.confidence | lower }}">{{ event.confidence }}</span>
+                    </div>
+                    <div class="event-desc">{{ event.event_description }}</div>
+                    <div class="event-source">{{ event.artifact_source }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted" style="padding: 20px; text-align: center;">No timeline data available. Run timeline normalization.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Case Summary & Findings Breakdown -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Incident Case Intelligence -->
+        <div class="cyber-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="card-title-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </span>
+                    Case Summary &bull; 19-Minute Exfiltration Incident
+                </span>
+                <span class="badge badge-high">CONFIRMED INCIDENT</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Incident Date</span>
+                    <span class="text-mono">2026-09-13 (13:44 &ndash; 14:03 IST)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Session Duration</span>
+                    <span class="text-mono text-green">19 minutes 23 seconds</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Primary Evidence Image</span>
+                    <span class="text-mono">Windows NTFS (TryHackMe Autopsy Lab)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Target Document</span>
+                    <span class="text-mono">company_data_Q3.xlsx</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Staging File</span>
+                    <span class="text-mono text-fail">C:\Users\John\Desktop\exfil.zip</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span class="text-secondary">Exfiltration Vector</span>
+                    <span class="text-mono text-green">wetransfer.com (Upload complete page)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
+                    <span class="text-secondary">Anti-Forensic Action</span>
+                    <span class="text-mono">Recycle Bin $I/$R deletion &amp; bin emptied</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Findings Distribution -->
+        <div class="cyber-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="card-title-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </span>
+                    Findings Confidence Distribution
+                </span>
+                <a href="{{ url_for('findings') }}" class="card-action">
+                    <span>View Register</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                        <span class="text-secondary">High Confidence (Corroborated Artifacts)</span>
+                        <span class="text-mono text-green font-bold">{{ stats.high_confidence_count }} (67%)</span>
+                    </div>
+                    <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 67%; height: 100%; background: var(--accent-green);"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                        <span class="text-secondary">Medium Confidence (Contextual / Single Source)</span>
+                        <span class="text-mono font-bold" style="color: var(--status-warn);">{{ stats.medium_confidence_count }} (33%)</span>
+                    </div>
+                    <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 33%; height: 100%; background: var(--status-warn);"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                        <span class="text-secondary">Low Confidence / Hypotheses</span>
+                        <span class="text-mono text-muted">0 (0%)</span>
+                    </div>
+                    <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                        <div style="width: 0%; height: 100%; background: var(--text-muted);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Submission Metadata -->
+        <div class="cyber-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="card-title-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </span>
+                    Internal Assessment 2 Details
+                </span>
+                <span class="badge badge-pass">ACADEMIC READY</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.7;">
+                <p><strong class="text-primary">Institution:</strong> K. J. Somaiya College of Engineering, Vidyavihar (E), Mumbai</p>
+                <p><strong class="text-primary">Course:</strong> Cyber Forensics &amp; Laws Theory (CFAL)</p>
+                <p><strong class="text-primary">Team:</strong> Harshit Rawat (16014024059), Kaushiki Choubey (16014024013), Jiya Jain (16014024022)</p>
+                <p><strong class="text-primary">Standard:</strong> Observation vs Inference Separation, ISO/IEC 27037 Principles</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

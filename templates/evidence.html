@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence Inventory &mdash; GhostTrace{% endblock %}
+{% block breadcrumb %}Evidence Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-titles">
+        <h1 class="page-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            Evidence Inventory Management
+        </h1>
+        <p class="page-subtitle">
+            Forensic artifact catalog adhering to ISO/IEC 27037 standards for digital evidence identification and chain of custody tracking.
+        </p>
+    </div>
+    <div class="header-actions">
+        <form method="POST" action="{{ url_for('api_evidence_refresh') }}" style="display: inline;">
+            <button type="submit" class="btn btn-outline-green" id="btn-refresh-inv">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Re-Scan Directory</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Upload / Inspect Local File Box -->
+<div class="cyber-card mb-4">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="card-title-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+            </span>
+            Inspect Local Forensic File
+        </span>
+        <span class="badge badge-neutral">READ-ONLY AUDIT</span>
+    </div>
+
+    <form id="inspect-form" enctype="multipart/form-data" method="POST" action="{{ url_for('api_evidence_inspect') }}">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 280px;">
+                <input type="file" name="evidence_file" id="evidence_file" class="form-control" style="padding-top: 5px;" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-inspect">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>Inspect Metadata &amp; Compute SHA-256</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Inspection Result Target -->
+    <div id="inspection-result" style="display: none; margin-top: 16px;"></div>
+</div>
+
+<!-- Evidence Table -->
+<div class="cyber-card">
+    <div class="card-header">
+        <span class="card-title">
+            <span class="card-title-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+            </span>
+            Registered Evidence Items ({{ evidence_items | length }})
+        </span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-sm btn-secondary" data-filter-group="cat" data-filter-value="all">All</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="cat" data-filter-value="disk_image">Disk Image</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="cat" data-filter-value="browser">Browser</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="cat" data-filter-value="log">Event Logs</button>
+            <button class="btn btn-sm btn-secondary" data-filter-group="cat" data-filter-value="csv_data">Autopsy Exports</button>
+        </div>
+    </div>
+
+    {% if evidence_items %}
+    <div class="table-responsive">
+        <table class="cyber-table" data-searchable="true">
+            <thead>
+                <tr>
+                    <th>Evidence ID</th>
+                    <th>Filename</th>
+                    <th>Category / Notes</th>
+                    <th>Size</th>
+                    <th>Acquisition / Mod (UTC)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in evidence_items %}
+                <tr data-filter-cat="{{ item.category }}">
+                    <td class="font-mono text-green" style="font-weight: 600;">{{ item.evidence_id }}</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600;">{{ item.filename }}</span>
+                            <span class="text-muted font-mono" style="font-size: 11px;">{{ item.relative_path }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-neutral">{{ item.category }}</span>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ item.notes }}</div>
+                    </td>
+                    <td class="font-mono text-secondary nowrap">{{ item.size_human }}</td>
+                    <td class="font-mono text-muted nowrap" style="font-size: 11px;">{{ item.modified_utc }}</td>
+                    <td>
+                        <a href="{{ url_for('hash_verification', file=item.relative_path) }}" class="btn btn-sm btn-outline-green" title="Hash this file">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="4" y1="9" x2="20" y2="9"></line>
+                                <line x1="4" y1="15" x2="20" y2="15"></line>
+                                <line x1="10" y1="3" x2="8" y2="21"></line>
+                                <line x1="16" y1="3" x2="14" y2="21"></line>
+                            </svg>
+                            <span>Hash</span>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="padding: 40px; text-align: center;" class="text-muted">
+        <p>No evidence items registered yet in <code class="text-mono">evidence/evidence_inventory.csv</code>.</p>
+        <p style="margin-top: 8px;">Click "Re-Scan Directory" to discover artifacts in the project evidence folder.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('inspect-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-inspect');
+    const resultBox = document.getElementById('inspection-result');
+    const formData = new FormData(e.target);
+
+    btn.disabled = true;
+    btn.innerHTML = 'Computing SHA-256...';
+
+    try {
+        const resp = await fetch('{{ url_for("api_evidence_inspect") }}', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await resp.json();
+        
+        if (resp.ok && data.success) {
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = `
+                <div class="hash-result-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: var(--text-primary);">${data.filename} (${data.size_human})</span>
+                        <span class="badge badge-pass">SHA-256 COMPUTED</span>
+                    </div>
+                    <div class="hash-string-container">
+                        <span class="hash-string" id="inspected-hash">${data.sha256}</span>
+                        <button type="button" class="btn btn-sm btn-outline-green" data-copy-target="inspected-hash">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            showToast('success', 'File Analyzed', `SHA-256: ${data.sha256.substring(0, 16)}...`);
+        } else {
+            showToast('error', 'Inspection Error', data.error || 'Failed to analyze file.');
+        }
+    } catch (err) {
+        showToast('error', 'Network Error', 'Could not process inspection request.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Inspect Metadata &amp; Compute SHA-256</span>
+        `;
+    }
+});
+</script>
+{% endblock %}

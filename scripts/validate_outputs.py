@@ -28,28 +28,40 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Validation result tracker
 # ──────────────────────────────────────────────────────────────────────────────
 class ValidationReport:
-    def __init__(self):
+    def __init__(self, verbose: bool = True):
         self.results: list[dict] = []
+        self.verbose = verbose
 
     def ok(self, check: str, detail: str = ""):
         self.results.append({"status": "PASS", "check": check, "detail": detail})
-        print(f"  [PASS] {check}" + (f" — {detail}" if detail else ""))
+        if self.verbose:
+            print(f"  [PASS] {check}" + (f" - {detail}" if detail else ""))
 
     def fail(self, check: str, detail: str):
         self.results.append({"status": "FAIL", "check": check, "detail": detail})
-        print(f"  [FAIL] {check} — {detail}")
+        if self.verbose:
+            print(f"  [FAIL] {check} - {detail}")
 
     def warn(self, check: str, detail: str):
         self.results.append({"status": "WARN", "check": check, "detail": detail})
-        print(f"  [WARN] {check} — {detail}")
+        if self.verbose:
+            print(f"  [WARN] {check} - {detail}")
 
     def skip(self, check: str, reason: str):
         self.results.append({"status": "SKIP", "check": check, "detail": reason})
-        print(f"  [SKIP] {check} — {reason}")
+        if self.verbose:
+            print(f"  [SKIP] {check} - {reason}")
 
     @property
     def passed(self) -> int:
@@ -63,11 +75,28 @@ class ValidationReport:
     def warned(self) -> int:
         return sum(1 for r in self.results if r["status"] == "WARN")
 
+    @property
+    def skipped(self) -> int:
+        return sum(1 for r in self.results if r["status"] == "SKIP")
+
     def summary(self) -> str:
         return (f"Total: {len(self.results)} | "
                 f"PASS: {self.passed} | "
                 f"FAIL: {self.failed} | "
-                f"WARN: {self.warned}")
+                f"WARN: {self.warned} | "
+                f"SKIP: {self.skipped}")
+
+    def to_dict(self) -> dict:
+        return {
+            "summary": {
+                "total": len(self.results),
+                "passed": self.passed,
+                "failed": self.failed,
+                "warned": self.warned,
+                "skipped": self.skipped,
+            },
+            "results": self.results,
+        }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -191,7 +220,7 @@ def validate_timeline_csv(path: Path, report: ValidationReport) -> None:
                 report.fail("Timeline chronological order", "Events are not sorted by timestamp")
 
             report.ok("Timeline date range",
-                     f"{timestamps[0].isoformat()} → {timestamps[-1].isoformat()}")
+                     f"{timestamps[0].isoformat()} -> {timestamps[-1].isoformat()}")
 
         # Check for duplicates
         desc_ts_pairs = [(r.get("timestamp_utc"), r.get("event_description")) for r in rows]
@@ -278,6 +307,22 @@ def validate_readme(path: Path, report: ValidationReport) -> None:
         report.ok("README length", f"{word_count} words")
 
 
+def run_validation(base: Path | None = None, verbose: bool = False) -> dict:
+    """Run all validation checks and return a structured dictionary."""
+    if base is None:
+        base = Path(".")
+    base = base.resolve()
+    report = ValidationReport(verbose=verbose)
+
+    validate_readme(base / "README.md", report)
+    validate_inventory_csv(base / "evidence" / "evidence_inventory.csv", report)
+    validate_hash_manifest(base / "evidence" / "hash_manifest", report)
+    validate_timeline_csv(base / "timeline" / "incident_timeline.csv", report)
+    validate_findings_register(base / "analysis" / "findings_register.csv", report)
+
+    return report.to_dict()
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
@@ -292,10 +337,10 @@ def main() -> int:
     args = parser.parse_args()
 
     base = args.base.resolve()
-    report = ValidationReport()
+    report = ValidationReport(verbose=True)
 
     print(f"\n{'='*60}")
-    print("GhostTrace — Output Validation Report")
+    print("GhostTrace - Output Validation Report")
     print(f"Base directory: {base}")
     print(f"Run time: {datetime.now(timezone.utc).isoformat()}")
     print(f"{'='*60}\n")
